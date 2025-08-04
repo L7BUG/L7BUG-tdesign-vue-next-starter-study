@@ -1,0 +1,16 @@
+.sync: &sync
+  - imports:
+      - https://cnb.cool/tencent/tdesign/tdesign-private/-/blob/main/cnb-envs.yml
+    stages:
+      - name: Sync to GitHub
+        image: tencentcom/git-sync
+        settings:
+          target_url: https://github.com/Tencent/tdesign-vue-next-starter.git
+          auth_type: https
+          username: ${GIT_USERNAME}
+          password: ${GIT_ACCESS_TOKEN}
+          push_tags: true
+
+"(main|develop)":
+  push:
+    - <<: *sync
