@@ -17,11 +17,16 @@
 $:
   vscode:
     - docker:
-        build: .cnb/Dockerfile
+        build: 
+          dockerfile: .cnb/Dockerfile
+          by:
+            .cnb/mcp-servers.json
+        
         volumes:
-          - node_modules:cow
+          - node_modules:copy-on-write
       env:
-        CNB_WELCOME_CMD: npm run dev
+        CNB_WELCOME_CMD: |
+          npm run dev
       services:
         - vscode
         - docker
@@ -29,3 +34,4 @@ $:
         - name: install dependencies
           script: 
           - npm install
+          - sleep 8
