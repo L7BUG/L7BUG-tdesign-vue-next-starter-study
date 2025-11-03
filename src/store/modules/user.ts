@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 
+import { usePermissionStore } from '@/store';
 // import { usePermissionStore } from '@/store';
 import type { UserInfo } from '@/types/interface';
 
@@ -76,12 +77,13 @@ export const useUserStore = defineStore('user', {
       this.userInfo = { ...InitUserInfo };
     },
   },
-  // persist: {
-  //   afterRestore: () => {
-  //     const permissionStore = usePermissionStore();
-  //     permissionStore.initRoutes();
-  //   },
-  //   // key: 'user',
-  //   // paths: ['token'],
-  // },
+  persist: {
+    afterHydrate: () => {
+      console.log('==========================afterHydrateafterHydrateafterHydrateafterHydrate=======================');
+      const permissionStore = usePermissionStore();
+      permissionStore.initRoutes().finally();
+    },
+    key: 'user',
+    pick: ['token'],
+  },
 });
