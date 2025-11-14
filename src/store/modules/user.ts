@@ -3,17 +3,17 @@ import { MessagePlugin } from 'tdesign-vue-next';
 
 import { loginByPassword, logout } from '@/api/system/auth';
 import type { LoginRequest } from '@/api/system/model/authModel';
-import type { UserInfo } from '@/api/system/model/userModel';
-import { currentUserInfo } from '@/api/system/userApi';
+import type { CurrentUserInfo } from '@/api/system/model/userModel';
+import { userApi } from '@/api/system/userApi';
 import { usePermissionStore } from '@/store';
 
-const InitUserInfo: UserInfo = {
+const InitUserInfo: CurrentUserInfo = {
   id: '',
   username: '',
   nickname: '',
   authorities: [],
 };
-export const useUserStore = defineStore('user', {
+const useUserStore = defineStore('user', {
   state: () => ({
     token: 'main_token', // 默认token不走权限
     userInfo: { ...InitUserInfo },
@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', {
       this.token = await loginByPassword(userInfo.username, userInfo.password);
     },
     async getUserInfo() {
-      this.userInfo = await currentUserInfo();
+      this.userInfo = await userApi.currentUserInfo();
       return this.userInfo;
     },
     async logout() {
@@ -37,7 +37,7 @@ export const useUserStore = defineStore('user', {
         await MessagePlugin.success(`[${this.userInfo.nickname}]已退出登录`);
       }
       this.token = '';
-      this.userInfo = <UserInfo>{
+      this.userInfo = <CurrentUserInfo>{
         id: '',
         username: '',
         nickname: '',
@@ -55,3 +55,4 @@ export const useUserStore = defineStore('user', {
     pick: ['token'],
   },
 });
+export default useUserStore;

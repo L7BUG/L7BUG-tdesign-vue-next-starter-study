@@ -5,7 +5,7 @@ import { Color } from 'tvision-color';
 import type { TColorSeries } from '@/config/color';
 import { DARK_CHART_COLORS, LIGHT_CHART_COLORS } from '@/config/color';
 import STYLE_CONFIG from '@/config/style';
-import { store } from '@/store';
+import { store, usePermissionStore } from '@/store';
 import type { ModeType } from '@/types/interface';
 import { generateColorMap, insertThemeStylesheet } from '@/utils/color';
 
@@ -101,7 +101,9 @@ export const useSettingStore = defineStore('setting', {
       }
     },
   },
-
+  persist: {
+    key: 'setting',
+  },
 });
 
 export function getSettingStore() {
