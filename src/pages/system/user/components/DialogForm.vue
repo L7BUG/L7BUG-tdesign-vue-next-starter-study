@@ -1,29 +1,22 @@
 <template>
-  <t-dialog v-model:visible="formVisible" :header="t('pages.listCard.create')" :width="680" :footer="false">
+  <t-dialog v-model:visible="formVisible" header="用户" :width="680" :footer="false">
     <template #body>
       <!-- 表单内容 -->
       <t-form :data="formData" :rules="rules" :label-width="100" @submit="onSubmit">
-        <t-form-item :label="t('pages.listCard.productName')" name="name">
-          <t-input v-model="formData.name" :style="{ width: '480px' }" />
+        <t-form-item label="用户名" name="username">
+          <t-input v-model="formData.username" :style="{ width: '480px' }" />
         </t-form-item>
-        <t-form-item :label="t('pages.listCard.productStatus')" name="status">
-          <t-radio-group v-model="formData.status">
-            <t-radio value="0">{{ t('pages.listCard.productStatusEnum.off') }}</t-radio>
-            <t-radio value="1">{{ t('pages.listCard.productStatusEnum.on') }}</t-radio>
-          </t-radio-group>
+        <!--        <t-form-item label="用户状态" name="status"> -->
+        <!--          <t-radio-group v-model="formData.status"> -->
+        <!--            <t-radio value="0">禁用</t-radio> -->
+        <!--            <t-radio value="1">启用</t-radio> -->
+        <!--          </t-radio-group> -->
+        <!--        </t-form-item> -->
+        <t-form-item label="用户昵称" name="nickname">
+          <t-input v-model="formData.nickname" :style="{ width: '480px' }" />
         </t-form-item>
-        <t-form-item :label="t('pages.listCard.productDescription')" name="description">
-          <t-input v-model="formData.description" :style="{ width: '480px' }" />
-        </t-form-item>
-        <t-form-item :label="t('pages.listCard.productType')" name="type">
-          <t-select v-model="formData.type" clearable :style="{ width: '480px' }">
-            <t-option v-for="(item, index) in SELECT_OPTIONS" :key="index" :value="item.value" :label="item.label">
-              {{ item.label }}
-            </t-option>
-          </t-select>
-        </t-form-item>
-        <t-form-item :label="t('pages.listCard.productRemark')" name="mark">
-          <t-textarea v-model="textareaValue" :style="{ width: '480px' }" name="description" />
+        <t-form-item label="密码" name="rawPassword">
+          <t-input v-model="formData.rawPassword" :style="{ width: '480px' }" />
         </t-form-item>
         <t-form-item style="float: right">
           <t-button variant="outline" @click="onClickCloseBtn">取消</t-button>
@@ -34,80 +27,74 @@
   </t-dialog>
 </template>
 <script setup lang="ts">
-import type { FormRules, SubmitContext } from 'tdesign-vue-next';
+import type { FormRules } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
 import { ref, watch } from 'vue';
 
-import { t } from '@/locales';
+import type { SystemUserUpdate } from '@/api/system/model/userModel';
+import { userApi } from '@/api/system/userApi';
 
-export interface FormData {
-  name: string;
-  status: string;
-  description: string;
-  type: string;
-  mark: string;
-  amount: number;
-}
-
-const { visible, data } = defineProps({
+const { id, visible, data } = defineProps({
+  id: {
+    type: String,
+    default: null,
+  },
   visible: {
     type: Boolean,
     default: false,
   },
   data: {
-    type: Object as PropType<FormData>,
+    type: Object as PropType<SystemUserUpdate>,
     default: undefined,
   },
 });
-
 const emit = defineEmits(['update:visible']);
-
-const INITIAL_DATA: FormData = {
-  name: '',
-  status: '',
-  description: '',
-  type: '',
-  mark: '',
-  amount: 0,
-};
-
-const SELECT_OPTIONS = [
-  { label: '网关', value: '1' },
-  { label: '人工智能', value: '2' },
-  { label: 'CVM', value: '3' },
-];
-
+console.log('idid:', id);
 const formVisible = ref(false);
-const formData = ref({ ...INITIAL_DATA });
-const textareaValue = ref('');
+const formData = ref({ ...data });
 
-const onSubmit = ({ validateResult, firstError }: SubmitContext) => {
-  if (!firstError) {
-    MessagePlugin.success('提交成功');
-    formVisible.value = false;
-  } else {
-    console.log('Errors: ', validateResult);
-    MessagePlugin.warning(firstError);
-  }
+const onSubmit = () => {
+  userApi
+    .saveUserInfo(formData.value, id)
+    .then(() => {
+      MessagePlugin.success(`提交成功`);
+      formVisible.value = false;
+    })
+    .finally(() => emit('update:visible'));
 };
 
 const onClickCloseBtn = () => {
   formVisible.value = false;
-  formData.value = { ...INITIAL_DATA };
+  formData.value = {
+    ...{
+      username: '',
+      rawPassword: '',
+      nickname: '',
+    },
+  };
 };
-
-watch(
-  () => formVisible.value,
-  (val) => {
-    emit('update:visible', val);
-  },
-);
+const initForm = () => {
+  formData.value = {
+    ...{
+      username: '',
+      rawPassword: '',
+      nickname: '',
+    },
+  };
+};
+// watch(
+//   () => formVisible.value,
+//   (val) => {
+//     emit('update:visible', val);
+//   },
+// );
 
 watch(
   () => visible,
   (val) => {
     formVisible.value = val;
+    initForm();
   },
 );
 
@@ -118,7 +105,12 @@ watch(
   },
 );
 
-const rules: FormRules<FormData> = {
-  name: [{ required: true, message: '请输入产品名称', type: 'error' }],
+const rules: FormRules<SystemUserUpdate> = {
+  username: [{ required: true, message: '请输入用户名', type: 'error' }],
+  nickname: [{ required: true, message: '请输入用户昵称', type: 'error' }],
+  rawPassword: [
+    { required: !!id, message: '请输入密码', type: 'error' },
+    { min: 6, required: !!id, message: '密码长度要大于6', type: 'error' },
+  ],
 };
 </script>

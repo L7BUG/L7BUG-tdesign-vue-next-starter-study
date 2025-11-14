@@ -2,6 +2,7 @@
 import type { AxiosInstance } from 'axios';
 import isString from 'lodash/isString';
 import merge from 'lodash/merge';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 import { ContentTypeEnum } from '@/constants';
 import { useUserStore } from '@/store';
@@ -20,13 +21,11 @@ const transform: AxiosTransform = {
   // 处理请求数据。如果数据不是预期格式，可直接抛出错误
   transformRequestHook: (res, options) => {
     const { isTransformResponse, isReturnNativeResponse } = options;
-
     // 如果204无内容直接返回
     const method = res.config.method?.toLowerCase();
     if (res.status === 204 && ['put', 'patch', 'delete'].includes(method)) {
       return res;
     }
-
     // 是否返回原生响应头 比如：需要获取响应头时使用该属性
     if (isReturnNativeResponse) {
       return res;
@@ -36,12 +35,11 @@ const transform: AxiosTransform = {
     if (!isTransformResponse) {
       return res.data;
     }
-
     // 错误的时候返回
     const { data } = res;
-    if (!data) {
-      throw new Error('请求接口错误');
-    }
+    // if (!data) {
+    //   throw new Error('请求接口错误');
+    // }
 
     //  这里 code为 后台统一的字段，需要在 types.ts内修改为项目自己的接口返回格式
     const { success, code, message } = data;
@@ -51,7 +49,7 @@ const transform: AxiosTransform = {
     if (success || code === '0') {
       return data.data;
     }
-
+    MessagePlugin.error(`[${code}]${message}`).then();
     throw new Error(`请求接口错误, 错误码: ${code},错误信息: ${message}`);
   },
 

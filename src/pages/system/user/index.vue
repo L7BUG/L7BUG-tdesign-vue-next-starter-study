@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="list-card-operation">
-      <t-button @click="formDialogVisible = true">新增用户</t-button>
+      <t-button @click="openCreate">新增用户</t-button>
       <div class="search-input">
         <t-input v-model="searchValue" :placeholder="t('pages.listCard.placeholder')" clearable>
           <template #suffix-icon>
@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <dialog-form v-model:visible="formDialogVisible" :data="formData" />
+    <dialog-form :id="id" v-model:visible="formDialogVisible" :data="createUser" @update:visible="fetchData" />
 
     <template v-if="pagination.total > 0 && !dataLoading">
       <div class="list-card-items">
@@ -20,8 +20,9 @@
             <user-card
               class="list-card-item"
               :info="item"
+              @item-update="(args) => fetchData()"
+              @item-can-edit="(args) => openEdit(item)"
               @delete-item="handleDeleteItem"
-              @manage-product="handleManageProduct"
             />
           </t-col>
         </t-row>
@@ -46,7 +47,6 @@
       v-model:visible="confirmVisible"
       header="确认删除所选产品？"
       :body="confirmBody"
-      :on-cancel="onCancel"
       @confirm="onConfirmDelete"
     />
   </div>
@@ -56,53 +56,51 @@ import { SearchIcon } from 'tdesign-icons-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
-import type { SystemUserInfo } from '@/api/system/model/userModel';
+import type { SystemUserInfo, SystemUserUpdate } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
 import type { CardProductType } from '@/components/product-card/index.vue';
 import UserCard from '@/components/user-card/index.vue';
 import { t } from '@/locales';
 
-import type { FormData } from './components/DialogForm.vue';
 import DialogForm from './components/DialogForm.vue';
 
 defineOptions({
   name: 'SystemUser',
 });
-
-const INITIAL_DATA: FormData = {
-  name: '',
-  status: '',
-  description: '',
-  type: '0',
-  mark: '',
-  amount: 0,
+const INITIAL_USER_DATA: SystemUserUpdate = {
+  username: '',
+  nickname: '',
+  rawPassword: '',
+  status: 1,
 };
-
+const id = ref<string>(null);
 const pagination = ref({ current: 1, pageSize: 4, total: 0 });
 const deleteProduct = ref(undefined);
 
 const userInfoList = ref<SystemUserInfo[]>([]);
 const dataLoading = ref(true);
-
-const fetchData = async () => {
-  try {
-    const page = await userApi.page({
+const fetchData = () => {
+  userInfoList.value = [];
+  userApi
+    .page({
       asc: true,
       column: 'id',
       current: pagination.value.current,
       size: pagination.value.pageSize,
+    })
+    .then((page) => {
+      userInfoList.value = page.data;
+      pagination.value = {
+        ...pagination.value,
+        total: page.total,
+      };
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      dataLoading.value = false;
     });
-    console.log('page:', page);
-    userInfoList.value = page.data;
-    pagination.value = {
-      ...pagination.value,
-      total: page.total,
-    };
-  } catch (e) {
-    console.log(e);
-  } finally {
-    dataLoading.value = false;
-  }
 };
 
 const confirmBody = computed(() =>
@@ -110,22 +108,24 @@ const confirmBody = computed(() =>
 );
 
 onMounted(() => {
+  console.log('onMounted');
   fetchData();
 });
 
 const formDialogVisible = ref(false);
 const searchValue = ref('');
 const confirmVisible = ref(false);
-const formData = ref({ ...INITIAL_DATA });
-
+const createUser = ref<SystemUserUpdate>({ ...INITIAL_USER_DATA });
 const onPageSizeChange = (size: number) => {
   pagination.value.pageSize = size;
   pagination.value.current = 1;
   fetchData();
+  console.log('onPageSizeChange');
 };
 const onCurrentChange = (current: number) => {
   pagination.value.current = current;
   fetchData();
+  console.log('onCurrentChange');
 };
 const handleDeleteItem = (product: CardProductType) => {
   confirmVisible.value = true;
@@ -137,20 +137,19 @@ const onConfirmDelete = () => {
   confirmVisible.value = false;
   MessagePlugin.success('删除成功');
 };
-const onCancel = () => {
-  deleteProduct.value = undefined;
-  formData.value = { ...INITIAL_DATA };
-};
-const handleManageProduct = (product: CardProductType) => {
+const openEdit = (item: SystemUserInfo) => {
   formDialogVisible.value = true;
-  formData.value = {
-    name: product.name,
-    status: product?.isSetup ? '1' : '0',
-    description: product.description,
-    type: product.type.toString(),
-    mark: '',
-    amount: 0,
+  id.value = item.id;
+  createUser.value = {
+    username: item.username,
+    nickname: item.nickname,
+    rawPassword: '',
   };
+};
+const openCreate = () => {
+  formDialogVisible.value = true;
+  id.value = null;
+  createUser.value = { ...INITIAL_USER_DATA };
 };
 </script>
 <style lang="less" scoped>

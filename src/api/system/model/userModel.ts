@@ -24,3 +24,10 @@ export interface PageData<T> {
 }
 
 export interface SystemUserQuery extends PageQuery {}
+
+export interface SystemUserUpdate {
+  username?: string;
+  nickname?: string;
+  rawPassword?: string;
+  status?: number;
+}
