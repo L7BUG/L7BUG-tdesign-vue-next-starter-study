@@ -93,7 +93,7 @@ import { useUserStore } from '@/store';
 
 const userStore = useUserStore();
 const INITIAL_DATA: LoginRequest = {
-  username: '15050958655',
+  username: 'root',
   password: '123456',
 };
 

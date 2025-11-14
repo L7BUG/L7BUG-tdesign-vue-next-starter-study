@@ -31,7 +31,7 @@
           v-model="pagination.current"
           v-model:page-size="pagination.pageSize"
           :total="pagination.total"
-          :page-size-options="[4, 12, 24, 36]"
+          :page-size-options="[4, 8, 12, 16, 20, 24]"
           @page-size-change="onPageSizeChange"
           @current-change="onCurrentChange"
         />
