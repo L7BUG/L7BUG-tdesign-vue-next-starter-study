@@ -3,7 +3,7 @@
     <t-col :flex="3">
       <div class="user-left-greeting">
         <div>
-          Hi，Image
+          Hi:{{ userStore.userInfo.nickname }}
           <span class="regular"> {{ t('pages.user.markDay') }}</span>
         </div>
         <img src="@/assets/assets-tencent-logo.png" class="logo" />
@@ -96,7 +96,7 @@ import ProductBIcon from '@/assets/assets-product-2.svg';
 import ProductCIcon from '@/assets/assets-product-3.svg';
 import ProductDIcon from '@/assets/assets-product-4.svg';
 import { t } from '@/locales';
-import { useSettingStore } from '@/store';
+import { useSettingStore, useUserStore } from '@/store';
 import { changeChartsTheme } from '@/utils/color';
 import { LAST_7_DAYS } from '@/utils/date';
 
@@ -106,6 +106,7 @@ import { getFolderLineDataSet } from './index';
 defineOptions({
   name: 'UserIndex',
 });
+const userStore = useUserStore();
 
 echarts.use([GridComponent, TooltipComponent, LineChart, CanvasRenderer, LegendComponent]);
 
