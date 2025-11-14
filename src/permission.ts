@@ -24,7 +24,7 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     try {
-      console.log('前置');
+      console.log('[路由前置]请求用户信息...');
       await userStore.getUserInfo();
 
       const { asyncRoutes } = permissionStore;

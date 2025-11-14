@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { MessagePlugin } from 'tdesign-vue-next';
 
 import { loginByPassword, logout } from '@/api/system/auth';
 import type { LoginRequest } from '@/api/system/model/authModel';
@@ -24,23 +25,16 @@ export const useUserStore = defineStore('user', {
   },
   actions: {
     async login(userInfo: LoginRequest) {
-      console.log('login', userInfo);
-
-      // console.log(res);
-      // const res = await mockLogin(userInfo);
-      // if (res.code === 200) {
-      //   this.token = res.data;
-      // } else {
-      //   throw res;
-      // }
       this.token = await loginByPassword(userInfo.username, userInfo.password);
     },
     async getUserInfo() {
       this.userInfo = await currentUserInfo();
+      return this.userInfo;
     },
     async logout() {
       if (this.token) {
         await logout();
+        await MessagePlugin.success(`[${this.userInfo.nickname}]已退出登录`);
       }
       this.token = '';
       this.userInfo = <UserInfo>{

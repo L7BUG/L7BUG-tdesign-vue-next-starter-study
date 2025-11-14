@@ -134,8 +134,7 @@ const onSubmit = async (ctx: SubmitContext) => {
   if (ctx.validateResult === true) {
     try {
       await userStore.login(formData.value);
-
-      await MessagePlugin.success('登录成功');
+      await MessagePlugin.success(`欢迎:${(await userStore.getUserInfo()).nickname}`);
       const redirect = route.query.redirect as string;
       const redirectUrl = redirect ? decodeURIComponent(redirect) : '/dashboard';
       router.push(redirectUrl);
