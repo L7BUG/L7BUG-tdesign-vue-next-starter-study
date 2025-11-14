@@ -10,7 +10,7 @@
   >
     <template v-if="type === 'password'">
       <t-form-item name="account">
-        <t-input v-model="formData.account" size="large" :placeholder="`${t('pages.login.input.account')}：admin`">
+        <t-input v-model="formData.username" size="large" :placeholder="`${t('pages.login.input.account')}：admin`">
           <template #prefix-icon>
             <t-icon name="user" />
           </template>
@@ -52,7 +52,7 @@
     <!-- 手机号登录 -->
     <template v-else>
       <t-form-item name="phone">
-        <t-input v-model="formData.phone" size="large" :placeholder="t('pages.login.input.phone')">
+        <t-input size="large" :placeholder="t('pages.login.input.phone')">
           <template #prefix-icon>
             <t-icon name="mobile" />
           </template>
@@ -60,7 +60,7 @@
       </t-form-item>
 
       <t-form-item class="verification-code" name="verifyCode">
-        <t-input v-model="formData.verifyCode" size="large" :placeholder="t('pages.login.input.verification')" />
+        <t-input size="large" :placeholder="t('pages.login.input.verification')" />
         <t-button size="large" variant="outline" :disabled="countDown > 0" @click="sendCode">
           {{ countDown === 0 ? t('pages.login.sendVerification') : `${countDown}秒后可重发` }}
         </t-button>
@@ -86,23 +86,20 @@ import { MessagePlugin } from 'tdesign-vue-next';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import type { LoginRequest } from '@/api/system/model/authModel';
 import { useCounter } from '@/hooks';
 import { t } from '@/locales';
 import { useUserStore } from '@/store';
 
 const userStore = useUserStore();
-
-const INITIAL_DATA = {
-  phone: '',
-  account: 'admin',
-  password: 'admin',
-  verifyCode: '',
-  checked: false,
+const INITIAL_DATA: LoginRequest = {
+  username: '15050958655',
+  password: '123456',
 };
 
 const FORM_RULES: Record<string, FormRule[]> = {
   phone: [{ required: true, message: t('pages.login.required.phone'), type: 'error' }],
-  account: [{ required: true, message: t('pages.login.required.account'), type: 'error' }],
+  username: [{ required: true, message: t('pages.login.required.account'), type: 'error' }],
   password: [{ required: true, message: t('pages.login.required.password'), type: 'error' }],
   verifyCode: [{ required: true, message: t('pages.login.required.verification'), type: 'error' }],
 };
@@ -110,7 +107,7 @@ const FORM_RULES: Record<string, FormRule[]> = {
 const type = ref('password');
 
 const form = ref<FormInstanceFunctions>();
-const formData = ref({ ...INITIAL_DATA });
+const formData = ref<LoginRequest>(INITIAL_DATA);
 const showPsw = ref(false);
 
 const [countDown, handleCounter] = useCounter();
@@ -138,13 +135,13 @@ const onSubmit = async (ctx: SubmitContext) => {
     try {
       await userStore.login(formData.value);
 
-      MessagePlugin.success('登录成功');
+      await MessagePlugin.success('登录成功');
       const redirect = route.query.redirect as string;
       const redirectUrl = redirect ? decodeURIComponent(redirect) : '/dashboard';
       router.push(redirectUrl);
     } catch (e) {
       console.log(e);
-      MessagePlugin.error(e.message);
+      await MessagePlugin.error(e.message);
     }
   }
 };

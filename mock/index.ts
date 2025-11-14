@@ -6,7 +6,7 @@ export default [
     url: '/api/get-purchase-list',
     method: 'get',
     response: () => ({
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           'list|1-100': [
@@ -36,7 +36,7 @@ export default [
     url: '/api/get-list',
     method: 'get',
     response: () => ({
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           'list|1-100': [
@@ -60,7 +60,7 @@ export default [
     url: '/api/detail-basic',
     method: 'get',
     response: () => ({
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           name: 'td_20023747',
@@ -78,7 +78,7 @@ export default [
     url: '/api/get-card-list',
     method: 'get',
     response: () => ({
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           'list|48-50': [
@@ -111,7 +111,7 @@ export default [
     url: '/api/get-project-list',
     method: 'get',
     response: () => ({
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           'list|1-50': [
@@ -138,7 +138,7 @@ export default [
     method: 'post',
     timeout: 2000,
     response: {
-      code: 0,
+      code: '0',
       data: {
         name: 'vben',
       },
@@ -149,7 +149,7 @@ export default [
     method: 'get',
     timeout: 2000,
     response: {
-      code: 0,
+      code: '0',
       data: {
         ...Mock.mock({
           list: [

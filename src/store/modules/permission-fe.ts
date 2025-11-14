@@ -7,6 +7,7 @@ import type { RouteRecordRaw } from 'vue-router';
 
 import router, { allRoutes } from '@/router';
 import { store } from '@/store';
+import type { Permission } from '@/types/router';
 
 function filterPermissionsRouters(routes: Array<RouteRecordRaw>, roles: Array<unknown>) {
   const res: Array<RouteRecordRaw> = [];
@@ -30,11 +31,12 @@ function filterPermissionsRouters(routes: Array<RouteRecordRaw>, roles: Array<un
 }
 
 export const usePermissionStore = defineStore('permission', {
-  state: () => ({
-    whiteListRouters: ['/login'],
-    routers: [],
-    removeRoutes: [],
-  }),
+  state: () =>
+    <Permission>{
+      whiteListRouters: ['/login'],
+      routers: [],
+      removeRoutes: [],
+    },
   actions: {
     async initRoutes(roles: Array<unknown>) {
       let accessedRouters = [];
@@ -59,8 +61,8 @@ export const usePermissionStore = defineStore('permission', {
       });
     },
     async restore() {
-      this.removeRoutes.forEach((item: RouteRecordRaw) => {
-        router.addRoute(item);
+      this.removeRoutes.forEach((item) => {
+        router.addRoute(<RouteRecordRaw>item);
       });
     },
   },

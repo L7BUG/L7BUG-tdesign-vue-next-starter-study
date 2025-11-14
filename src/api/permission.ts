@@ -1,12 +1,12 @@
-import type { MenuListResult } from '@/api/model/permissionModel';
+import type { RouteItem } from '@/api/model/permissionModel';
 import { request } from '@/utils/request';
 
 const Api = {
-  MenuList: '/get-menu-list-i18n',
+  MenuList: '/menu-list',
 };
 
 export function getMenuList() {
-  return request.get<MenuListResult>({
+  return request.get<Array<RouteItem>>({
     url: Api.MenuList,
   });
 }

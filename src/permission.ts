@@ -24,14 +24,15 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     try {
+      console.log('前置');
       await userStore.getUserInfo();
 
       const { asyncRoutes } = permissionStore;
 
       if (asyncRoutes && asyncRoutes.length === 0) {
         const routeList = await permissionStore.buildAsyncRoutes();
-        routeList.forEach((item: RouteRecordRaw) => {
-          router.addRoute(item);
+        routeList.forEach((item) => {
+          router.addRoute(<RouteRecordRaw>item);
         });
 
         if (to.name === PAGE_NOT_FOUND_ROUTE.name) {
@@ -61,6 +62,7 @@ router.beforeEach(async (to, from, next) => {
     if (whiteListRouters.includes(to.path)) {
       next();
     } else {
+      await MessagePlugin.info('请登录');
       next({
         path: '/login',
         query: { redirect: encodeURIComponent(to.fullPath) },
@@ -74,7 +76,6 @@ router.afterEach((to) => {
   if (to.path === '/login') {
     const userStore = useUserStore();
     const permissionStore = getPermissionStore();
-
     userStore.logout();
     permissionStore.restoreRoutes();
   }

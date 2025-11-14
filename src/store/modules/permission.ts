@@ -1,20 +1,21 @@
 import cloneDeep from 'lodash/cloneDeep';
 import { defineStore } from 'pinia';
-import type { RouteRecordRaw } from 'vue-router';
 
 import type { RouteItem } from '@/api/model/permissionModel';
 import { getMenuList } from '@/api/permission';
 import router, { fixedRouterList, homepageRouterList } from '@/router';
 import { store } from '@/store';
+import type { Permission } from '@/types/router';
 import { transformObjectToRoute } from '@/utils/route';
 
 export const usePermissionStore = defineStore('permission', {
-  state: () => ({
-    whiteListRouters: ['/login'],
-    routers: [],
-    removeRoutes: [],
-    asyncRoutes: [],
-  }),
+  state: () =>
+    <Permission>{
+      whiteListRouters: ['/login'],
+      routers: [],
+      removeRoutes: [],
+      asyncRoutes: [],
+    },
   actions: {
     async initRoutes() {
       const accessedRouters = this.asyncRoutes;
@@ -29,7 +30,7 @@ export const usePermissionStore = defineStore('permission', {
     async buildAsyncRoutes() {
       try {
         // 发起菜单权限请求 获取菜单列表
-        const asyncRoutes: Array<RouteItem> = (await getMenuList()).list;
+        const asyncRoutes: Array<RouteItem> = await getMenuList();
         this.asyncRoutes = transformObjectToRoute(asyncRoutes);
         await this.initRoutes();
         return this.asyncRoutes;
@@ -39,7 +40,7 @@ export const usePermissionStore = defineStore('permission', {
     },
     async restoreRoutes() {
       // 不需要在此额外调用initRoutes更新侧边导肮内容，在登录后asyncRoutes为空会调用
-      this.asyncRoutes.forEach((item: RouteRecordRaw) => {
+      this.asyncRoutes.forEach((item) => {
         if (item.name) {
           router.removeRoute(item.name);
         }
