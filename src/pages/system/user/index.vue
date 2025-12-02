@@ -1,7 +1,11 @@
 <template>
   <div>
     <div class="list-card-operation">
-      <t-button @click="openCreate">新增用户</t-button>
+      <t-button @click="openCreate">
+        <template #icon><user-add-icon /></template>
+
+        新增用户
+      </t-button>
       <div class="search-input">
         <t-input v-model="searchValue" :placeholder="t('pages.listCard.placeholder')" :on-enter="fetchData" clearable>
           <template #suffix-icon>
@@ -58,7 +62,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { SearchIcon } from 'tdesign-icons-vue-next';
+import { SearchIcon, UserAddIcon } from 'tdesign-icons-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
@@ -89,7 +93,7 @@ const fetchData = () => {
   userInfoList.value = [];
   userApi
     .page({
-      asc: true,
+      asc: false,
       column: 'id',
       current: pagination.value.current,
       size: pagination.value.pageSize,
