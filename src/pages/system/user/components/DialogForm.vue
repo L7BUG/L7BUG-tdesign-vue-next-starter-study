@@ -4,7 +4,7 @@
       <!-- 表单内容 -->
       <t-form :data="formData" :rules="rules" :label-width="100" @submit="onSubmit">
         <t-form-item label="用户名" name="username">
-          <t-input v-model="formData.username" :style="{ width: '480px' }" />
+          <t-input v-model="formData.username" :style="{ width: '480px' }" :disabled="!canEditUsername" />
         </t-form-item>
         <!--        <t-form-item label="用户状态" name="status"> -->
         <!--          <t-radio-group v-model="formData.status"> -->
@@ -35,7 +35,7 @@ import { ref, watch } from 'vue';
 import type { SystemUserUpdate } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
 
-const { id, visible, data } = defineProps({
+const { id, visible, data, canEditUsername } = defineProps({
   id: {
     type: String,
     default: null,
@@ -47,6 +47,10 @@ const { id, visible, data } = defineProps({
   data: {
     type: Object as PropType<SystemUserUpdate>,
     default: undefined,
+  },
+  canEditUsername: {
+    type: Boolean,
+    default: false,
   },
 });
 const emit = defineEmits(['update:visible']);
@@ -83,12 +87,12 @@ const initForm = () => {
     },
   };
 };
-// watch(
-//   () => formVisible.value,
-//   (val) => {
-//     emit('update:visible', val);
-//   },
-// );
+watch(
+  () => formVisible.value,
+  (val) => {
+    emit('update:visible', val);
+  },
+);
 
 watch(
   () => visible,

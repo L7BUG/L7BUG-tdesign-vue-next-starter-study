@@ -45,7 +45,7 @@
 </template>
 <script setup lang="ts">
 import { MoreIcon } from 'tdesign-icons-vue-next';
-import { DialogPlugin } from 'tdesign-vue-next';
+import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
 
@@ -62,13 +62,13 @@ const props = defineProps({
 const emit = defineEmits(['item-update', 'item-can-edit']);
 const setStatus = () => {
   console.log('请求', isEnable.value);
-  userApi
-    .updateStatus(userInfo.value.id, !isEnable.value)
-    .finally(() => emit('item-update', (userInfo.value.status + 1) % 2));
+  userApi.updateStatus(userInfo.value.id, !isEnable.value).finally(() => {
+    MessagePlugin.success('修改成功');
+    emit('item-update', (userInfo.value.status + 1) % 2);
+  });
 };
 const userInfo = ref(props.info);
 const isEnable = computed<boolean>(() => userInfo.value.status === 1);
-
 const deleteById = () => {
   const deleteConfirm = DialogPlugin.confirm({
     header: '确认删除吗?',

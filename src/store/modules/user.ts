@@ -22,6 +22,7 @@ const useUserStore = defineStore('user', {
     authorities: (state) => {
       return state.userInfo?.authorities;
     },
+    userId: (state) => {},
   },
   actions: {
     async login(userInfo: LoginRequest) {

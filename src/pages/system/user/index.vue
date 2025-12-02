@@ -11,7 +11,13 @@
       </div>
     </div>
 
-    <dialog-form :id="id" v-model:visible="formDialogVisible" :data="createUser" @update:visible="fetchData" />
+    <dialog-form
+      :id="id"
+      v-model:visible="formDialogVisible"
+      :can-edit-username="canEditUsername"
+      :data="createUser"
+      @update:visible="fetchData"
+    />
 
     <template v-if="pagination.total > 0 && !dataLoading">
       <div class="list-card-items">
@@ -21,7 +27,7 @@
               class="list-card-item"
               :info="item"
               @item-update="(args) => fetchData()"
-              @item-can-edit="(args) => openEdit(item)"
+              @item-can-edit="() => openEdit(item)"
               @delete-item="handleDeleteItem"
             />
           </t-col>
@@ -76,7 +82,7 @@ const INITIAL_USER_DATA: SystemUserUpdate = {
 const id = ref<string>(null);
 const pagination = ref({ current: 1, pageSize: 4, total: 0 });
 const deleteProduct = ref(undefined);
-
+const canEditUsername = ref(true);
 const userInfoList = ref<SystemUserInfo[]>([]);
 const dataLoading = ref(true);
 const fetchData = () => {
@@ -139,6 +145,7 @@ const onConfirmDelete = () => {
 };
 const openEdit = (item: SystemUserInfo) => {
   formDialogVisible.value = true;
+  canEditUsername.value = false;
   id.value = item.id;
   createUser.value = {
     username: item.username,
@@ -148,6 +155,7 @@ const openEdit = (item: SystemUserInfo) => {
 };
 const openCreate = () => {
   formDialogVisible.value = true;
+  canEditUsername.value = true;
   id.value = null;
   createUser.value = { ...INITIAL_USER_DATA };
 };

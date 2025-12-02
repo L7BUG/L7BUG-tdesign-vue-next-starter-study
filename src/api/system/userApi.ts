@@ -8,7 +8,6 @@ import type {
   SystemUserUpdate,
 } from '@/api/system/model/userModel';
 import { request } from '@/utils/request';
-import save = cursor.save;
 
 const api = {
   base: '/user',
