@@ -2,7 +2,7 @@
   <t-card theme="poster2" :bordered="false">
     <template #avatar>
       <t-space>
-        <t-avatar size="50px">{{ userInfo.nickname.substring(0, 1).toUpperCase() }}</t-avatar>
+        <t-avatar shape="round" size="medium">{{ userInfo.nickname.substring(0, 1).toUpperCase() }}</t-avatar>
       </t-space>
     </template>
     <template #status>
