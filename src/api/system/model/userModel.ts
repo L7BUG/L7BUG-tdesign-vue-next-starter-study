@@ -10,6 +10,7 @@ export interface SystemUserInfo {
   username: string;
   nickname: string;
   status: number;
+  createTime: number;
 }
 export interface PageQuery {
   current: number;
@@ -23,7 +24,9 @@ export interface PageData<T> {
   data: T[];
 }
 
-export interface SystemUserQuery extends PageQuery {}
+export interface SystemUserQuery extends PageQuery {
+  username?: string;
+}
 
 export interface SystemUserUpdate {
   username?: string;

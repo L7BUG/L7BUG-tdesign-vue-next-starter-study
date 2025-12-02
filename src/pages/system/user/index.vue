@@ -3,7 +3,7 @@
     <div class="list-card-operation">
       <t-button @click="openCreate">新增用户</t-button>
       <div class="search-input">
-        <t-input v-model="searchValue" :placeholder="t('pages.listCard.placeholder')" clearable>
+        <t-input v-model="searchValue" :placeholder="t('pages.listCard.placeholder')" :on-enter="fetchData" clearable>
           <template #suffix-icon>
             <search-icon v-if="searchValue === ''" size="var(--td-comp-size-xxxs)" />
           </template>
@@ -38,7 +38,7 @@
           v-model="pagination.current"
           v-model:page-size="pagination.pageSize"
           :total="pagination.total"
-          :page-size-options="[4, 8, 12, 16, 20, 24]"
+          :page-size-options="[8, 12, 16, 20, 24]"
           @page-size-change="onPageSizeChange"
           @current-change="onCurrentChange"
         />
@@ -80,7 +80,7 @@ const INITIAL_USER_DATA: SystemUserUpdate = {
   status: 1,
 };
 const id = ref<string>(null);
-const pagination = ref({ current: 1, pageSize: 4, total: 0 });
+const pagination = ref({ current: 1, pageSize: 8, total: 0 });
 const deleteProduct = ref(undefined);
 const canEditUsername = ref(true);
 const userInfoList = ref<SystemUserInfo[]>([]);
@@ -93,6 +93,7 @@ const fetchData = () => {
       column: 'id',
       current: pagination.value.current,
       size: pagination.value.pageSize,
+      username: searchValue.value,
     })
     .then((page) => {
       userInfoList.value = page.data;

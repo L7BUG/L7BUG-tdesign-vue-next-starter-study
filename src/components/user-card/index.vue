@@ -2,7 +2,7 @@
   <t-card theme="poster2" :bordered="false">
     <template #avatar>
       <t-space>
-        <t-avatar image="https://tdesign.gtimg.com/site/avatar.jpg" size="50px" />
+        <t-avatar size="50px">{{ userInfo.nickname.substring(0, 1).toUpperCase() }}</t-avatar>
       </t-space>
     </template>
     <template #status>
@@ -12,13 +12,21 @@
     </template>
     <template #content>
       <p class="list-card-item_detail--name">{{ userInfo.nickname }}</p>
-      <p class="list-card-item_detail--desc">用户名:{{ userInfo.username }}<br />id:{{ userInfo.id }}</p>
+      <p class="list-card-item_detail--desc">
+        用户名:{{ userInfo.username }}<br />id:{{ userInfo.id }}<br />创建时间:{{ userInfo.createTime }}
+      </p>
     </template>
-    <!--    <template #footer> -->
-    <!--      <t-avatar-group cascading="left-up" :max="2"> -->
-    <!--        <t-avatar>{{ props.info.nickname }}</t-avatar> -->
-    <!--      </t-avatar-group> -->
-    <!--    </template> -->
+    <template #footer>
+      <!--      <t-avatar-group cascading="left-up" :max="2"> -->
+      <!--        <t-avatar>{{ userInfo.createTime }}</t-avatar> -->
+      <!--      </t-avatar-group> -->
+      <t-tag theme="success">
+        <template #icon>
+          <t-icon name="usergroup-add" />
+        </template>
+        {{ userInfo.createTime }}
+      </t-tag>
+    </template>
     <template #actions>
       <t-dropdown
         :disabled="userInfo.id === '-1' ? true : !isEnable"

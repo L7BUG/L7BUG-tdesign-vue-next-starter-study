@@ -1,5 +1,3 @@
-import { cursor } from 'sisteransi';
-
 import type {
   CurrentUserInfo,
   PageData,
