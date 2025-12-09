@@ -1,16 +1,25 @@
 <template>
-  <t-row :gutter="16">
+  <t-row :gutter="12">
     <t-col :span="3" class="table-tree-container">
       <div class="list-tree-wrapper">
         <div class="list-tree-operator">
-          <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
-            <template #suffix-icon>
-              <search-icon size="var(--td-comp-size-xxxs)" />
-            </template>
-          </t-input>
+          <t-row :gutter="4">
+            <t-col :span="10">
+              <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
+                <template #suffix-icon>
+                  <search-icon size="var(--td-comp-size-xxxs)" />
+                </template>
+              </t-input>
+            </t-col>
+            <t-col :span="2">
+              <t-button size="medium" shape="square" variant="text">
+                <template #icon> <add-icon /></template>
+              </t-button>
+            </t-col>
+          </t-row>
           <t-tree :data="menuTree" hover expand-on-click-node :filter="filterByText">
             <template #operations="{ node }">
-              <t-button v-if="node.isLeaf()" theme="danger" size="small" shape="square" @click="deleteNode(node)">
+              <t-button v-if="node.isLeaf()" size="small" shape="square" variant="text" @click="deleteNode(node)">
                 <template #icon> <delete-icon /></template>
               </t-button>
             </template>
@@ -22,17 +31,19 @@
       <!--      <div class="list-tree-content"> -->
       <!--        <common-table /> -->
       <!--      </div> -->
+      <base-from />
     </t-col>
   </t-row>
 </template>
 <script setup lang="ts">
-import { DeleteIcon, SearchIcon } from 'tdesign-icons-vue-next';
+import { AddIcon, DeleteIcon, SearchIcon } from 'tdesign-icons-vue-next';
 import type { TreeNodeModel } from 'tdesign-vue-next';
 import { ref } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
 import { t } from '@/locales';
+import baseFrom from '@/pages/system/menu/base/index.vue';
 
 defineOptions({
   name: 'SystemMenu',
