@@ -3,25 +3,27 @@
     <t-col :span="3" class="table-tree-container">
       <div class="list-tree-wrapper">
         <div class="list-tree-operator">
-          <t-row :gutter="4">
-            <t-col :span="10">
-              <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
-                <template #suffix-icon>
-                  <search-icon size="var(--td-comp-size-xxxs)" />
-                </template>
-              </t-input>
-            </t-col>
-            <t-col :span="2">
-              <t-button size="medium" shape="square" variant="text">
+          <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
+            <template #suffix-icon>
+              <search-icon size="var(--td-comp-size-xxxs)" />
+            </template>
+          </t-input>
+          <t-tree :data="menuTree" hover expand-on-click-node :filter="filterByText">
+            <template #label="{ node }">
+              <span :title="node.label">
+                {{ showNodeName(node) }}
+              </span>
+            </template>
+            <template #operations="{ node }">
+              <t-button size="small" shape="square" variant="text" @click="deleteNode(node)">
                 <template #icon> <add-icon /></template>
               </t-button>
-            </t-col>
-          </t-row>
-          <t-tree :data="menuTree" hover expand-on-click-node :filter="filterByText">
-            <template #operations="{ node }">
               <t-button v-if="node.isLeaf()" size="small" shape="square" variant="text" @click="deleteNode(node)">
                 <template #icon> <delete-icon /></template>
               </t-button>
+            </template>
+            <template #icon="{ node }">
+              <icon :name="showNodeIcon(node)" />
             </template>
           </t-tree>
         </div>
@@ -36,19 +38,21 @@
   </t-row>
 </template>
 <script setup lang="ts">
-import { AddIcon, DeleteIcon, SearchIcon } from 'tdesign-icons-vue-next';
+import { AddIcon, DeleteIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
 import type { TreeNodeModel } from 'tdesign-vue-next';
 import { ref } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
 import { t } from '@/locales';
+import { useLocale } from '@/locales/useLocale';
 import baseFrom from '@/pages/system/menu/base/index.vue';
 
 defineOptions({
   name: 'SystemMenu',
 });
-
+const { locale } = useLocale();
+console.log('tttt::', locale.value);
 const filterByText = ref();
 const filterText = ref();
 const menuTree = ref<MenuNodeResponse[]>([]);
@@ -59,21 +63,47 @@ const onInput = () => {
   };
 };
 const getAllRootNodes = () => {
-  menuApi.getAllRootNodes().then((response) => {
-    menuTree.value = response;
+  menuApi.getRoot().then((response) => {
+    menuTree.value = [response];
   });
 };
 getAllRootNodes();
 const deleteNode = (node: TreeNodeModel) => {
   console.log(node);
+  console.log(JSON.stringify(node.data.meta));
+  console.log(node.data.meta.title);
   menuApi.deleteById(`${node.value}`).then((resp) => {
     if (resp) {
       getAllRootNodes();
     }
   });
 };
-const getIcon = (node: TreeNodeModel) => {
+const showNodeName = function (node: TreeNodeModel): string {
   console.log(node);
+  if (node.data.meta) {
+    const meta = JSON.parse(JSON.stringify(node.data.meta));
+    if (meta.title.zh_CN) {
+      if (meta.title[locale.value]) {
+        return meta.title[locale.value];
+      }
+      return meta.title.zh_CN;
+    }
+  }
+  return node.label;
+};
+const showNodeIcon = (node: TreeNodeModel): string => {
+  console.log();
+  if (node.data.meta) {
+    switch (node.data.type) {
+      case 'FOLDER':
+        return 'folder';
+      case 'PAGE':
+        return 'template';
+      case 'BUTTON':
+        return 'button';
+    }
+  }
+  return 'folder';
 };
 </script>
 <style lang="less" scoped>

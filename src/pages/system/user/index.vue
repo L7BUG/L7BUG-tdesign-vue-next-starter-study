@@ -103,7 +103,7 @@ const fetchData = () => {
       userInfoList.value = page.data;
       pagination.value = {
         ...pagination.value,
-        total: page.total,
+        total: page.total << 0,
       };
     })
     .catch((err) => {

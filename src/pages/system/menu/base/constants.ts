@@ -43,3 +43,8 @@ export const PARTY_B_OPTIONS = [
   { label: 'Company B', value: '2' },
   { label: 'Company C', value: '3' },
 ];
+export const MENU_TYPE = [
+  { label: '菜单', value: 'FOLDER' },
+  { label: '页面', value: 'PAGE' },
+  { label: '按钮', value: 'BUTTON' },
+];

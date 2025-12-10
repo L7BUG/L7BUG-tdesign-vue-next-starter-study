@@ -5,9 +5,9 @@ const api = {
   base: '/menu',
 };
 class MenuApi {
-  public async getAllRootNodes(): Promise<MenuNodeResponse[]> {
-    return request.get<MenuNodeResponse[]>({
-      url: api.base,
+  public async getRoot(): Promise<MenuNodeResponse> {
+    return request.get<MenuNodeResponse>({
+      url: `${api.base}/root`,
     });
   }
 

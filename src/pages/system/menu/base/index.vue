@@ -126,7 +126,7 @@
           </t-col>
         </t-row>
 
-        <div class="form-basic-container-title form-title-gap">{{ t('pages.formBase.otherInfo') }}</div>
+        <div class="form-basic-container-title form-title-gap">其他信息</div>
 
         <t-form-item :label="t('pages.formBase.remark')" name="comment">
           <t-textarea v-model="formData.comment" :height="124" :placeholder="t('pages.formBase.remarkPlaceholder')" />
@@ -138,7 +138,55 @@
             <t-avatar>+</t-avatar>
           </t-avatar-group>
         </t-form-item>
-        <div class="form-submit-left">
+
+        <div class="form-basic-container-title form-title-gap">菜单信息</div>
+
+        <t-row class="row-gap" :gutter="[32, 24]">
+          <t-col :span="6">
+            <t-form-item label="路径" name="name">
+              <t-input v-model="formData.name" :style="{ width: '322px' }" placeholder="请输入内容" />
+            </t-form-item>
+          </t-col>
+
+          <t-col :span="6">
+            <t-form-item label="名称" name="name">
+              <t-input v-model="formData.name" :style="{ width: '322px' }" placeholder="请输入内容" />
+            </t-form-item>
+          </t-col>
+          <t-col :span="6">
+            <t-form-item label="组件" name="name">
+              <t-input v-model="formData.name" :style="{ width: '322px' }" placeholder="请输入内容" />
+            </t-form-item>
+          </t-col>
+        </t-row>
+
+        <div class="form-basic-container-title form-title-gap">菜单名称</div>
+        <t-row class="row-gap" :gutter="[32, 24]">
+          <t-col :span="6">
+            <t-form-item label="菜单中文名" name="name">
+              <t-input v-model="formData.name" :style="{ width: '322px' }" placeholder="请输入内容" />
+            </t-form-item>
+          </t-col>
+
+          <t-col :span="6">
+            <t-form-item label="菜单英文名" name="name">
+              <t-input v-model="formData.name" :style="{ width: '322px' }" placeholder="请输入内容" />
+            </t-form-item>
+          </t-col>
+          <t-col :span="6">
+            <t-form-item label="图标" name="name">
+              <t-select v-model="value" placeholder="请选择">
+                <t-option v-for="item in options" :key="item.stem" :value="item.stem" class="overlay-options">
+                  <div>
+                    <t-icon :name="item.stem" />
+                  </div>
+                </t-option>
+                <template #valueDisplay><t-icon :name="value" :style="{ marginRight: '8px' }" />{{ value }}</template>
+              </t-select>
+            </t-form-item>
+          </t-col>
+        </t-row>
+        <div style="margin-top: 20px" class="form-submit-left">
           <t-button theme="primary" class="form-submit-confirm" type="submit">
             {{ t('pages.formBase.confirm') }}
           </t-button>
@@ -151,6 +199,7 @@
   </t-form>
 </template>
 <script setup lang="ts">
+import { manifest } from 'tdesign-icons-vue-next';
 import type { SubmitContext, UploadFailContext, UploadFile } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { ref } from 'vue';
@@ -162,7 +211,8 @@ import { FORM_RULES, INITIAL_DATA, PARTY_A_OPTIONS, PARTY_B_OPTIONS, TYPE_OPTION
 defineOptions({
   name: 'FormBase',
 });
-
+const options = ref(manifest);
+const value = ref('add');
 const formData = ref({ ...INITIAL_DATA });
 
 const onReset = () => {
