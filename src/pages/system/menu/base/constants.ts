@@ -1,6 +1,9 @@
 import type { FormRule, UploadFile } from 'tdesign-vue-next';
 
-export const FORM_RULES: Record<string, FormRule[]> = {
+import type { MenuNodeResponse } from '@/api/system/model/menuModel';
+
+export const FORM_RULES: Record<string, FormRule[]> = {};
+export const FORM_RULES_BACK: Record<string, FormRule[]> = {
   name: [{ required: true, message: '请输入合同名称', type: 'error' }],
   type: [{ required: true, message: '请选择合同类型', type: 'error' }],
   payment: [{ required: true, message: '请选择合同收付类型', type: 'error' }],
@@ -24,6 +27,27 @@ export const INITIAL_DATA = {
   amount: 0,
   comment: '',
   files: [] as Array<UploadFile>,
+};
+
+export const INITIAL_MENU_DATA: MenuNodeResponse = {
+  fatherId: '-1',
+  fullId: ' ',
+  path: '',
+  name: '',
+  component: '',
+  type: 'FOLDER',
+  enable: true,
+  sort: 0,
+  meta: {
+    title: {
+      zh_CN: '',
+      en_US: '',
+    },
+    icon: 'add',
+  },
+  id: '',
+  label: '',
+  value: '',
 };
 
 export const TYPE_OPTIONS = [

@@ -1,4 +1,4 @@
-import type { MenuNodeResponse } from '@/api/system/model/menuModel';
+import type { MenuNodeRequest, MenuNodeResponse } from '@/api/system/model/menuModel';
 import { request } from '@/utils/request';
 
 const api = {
@@ -8,6 +8,20 @@ class MenuApi {
   public async getRoot(): Promise<MenuNodeResponse> {
     return request.get<MenuNodeResponse>({
       url: `${api.base}/root`,
+    });
+  }
+
+  public async createMenu(menu: MenuNodeRequest): Promise<MenuNodeResponse> {
+    return request.post<MenuNodeResponse>({
+      url: `${api.base}`,
+      params: menu,
+    });
+  }
+
+  public async updateMenu(id: string, menu: MenuNodeRequest): Promise<MenuNodeResponse> {
+    return request.put<MenuNodeResponse>({
+      url: `${api.base}/${id}`,
+      params: menu,
     });
   }
 

@@ -15,11 +15,20 @@
               </span>
             </template>
             <template #operations="{ node }">
-              <t-button size="small" shape="square" variant="text" @click="deleteNode(node)">
-                <template #icon> <add-icon /></template>
-              </t-button>
-              <t-button v-if="node.isLeaf()" size="small" shape="square" variant="text" @click="deleteNode(node)">
+              <t-button
+                v-if="node.isLeaf() && node.data.id !== '-1'"
+                size="small"
+                shape="square"
+                variant="text"
+                @click="deleteNode(node)"
+              >
                 <template #icon> <delete-icon /></template>
+              </t-button>
+              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text" @click="editNode(node)">
+                <template #icon> <edit-icon /></template>
+              </t-button>
+              <t-button size="small" shape="square" variant="text" @click="addNode(node)">
+                <template #icon> <add-icon /></template>
               </t-button>
             </template>
             <template #icon="{ node }">
@@ -33,24 +42,27 @@
       <!--      <div class="list-tree-content"> -->
       <!--        <common-table /> -->
       <!--      </div> -->
-      <base-from />
+      <base-from :form-data="fromData" @submit="() => getAllRootNodes()" />
     </t-col>
   </t-row>
 </template>
 <script setup lang="ts">
-import { AddIcon, DeleteIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
+import { AddIcon, DeleteIcon, EditIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
 import type { TreeNodeModel } from 'tdesign-vue-next';
+import { MessagePlugin } from 'tdesign-vue-next';
 import { ref } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
 import { t } from '@/locales';
 import { useLocale } from '@/locales/useLocale';
+import { INITIAL_MENU_DATA } from '@/pages/system/menu/base/constants';
 import baseFrom from '@/pages/system/menu/base/index.vue';
 
 defineOptions({
   name: 'SystemMenu',
 });
+const fromData = ref<MenuNodeResponse>({ ...INITIAL_MENU_DATA });
 const { locale } = useLocale();
 console.log('tttt::', locale.value);
 const filterByText = ref();
@@ -78,6 +90,15 @@ const deleteNode = (node: TreeNodeModel) => {
     }
   });
 };
+const addNode = (node: TreeNodeModel) => {
+  console.log(node.data.id);
+  fromData.value = { ...INITIAL_MENU_DATA };
+  fromData.value.fatherId = node.data.id;
+  MessagePlugin.info(`正在往[${node.data.meta.title.zh_CN}]节点下新增子节点`);
+};
+const editNode = (node: TreeNodeModel) => {
+  fromData.value = JSON.parse(JSON.stringify(node.data));
+};
 const showNodeName = function (node: TreeNodeModel): string {
   console.log(node);
   if (node.data.meta) {
@@ -93,15 +114,8 @@ const showNodeName = function (node: TreeNodeModel): string {
 };
 const showNodeIcon = (node: TreeNodeModel): string => {
   console.log();
-  if (node.data.meta) {
-    switch (node.data.type) {
-      case 'FOLDER':
-        return 'folder';
-      case 'PAGE':
-        return 'template';
-      case 'BUTTON':
-        return 'button';
-    }
+  if (node.data.meta.icon) {
+    return node.data.meta.icon;
   }
   return 'folder';
 };
