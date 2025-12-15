@@ -30,6 +30,12 @@
               <t-button size="small" shape="square" variant="text" @click="addNode(node)">
                 <template #icon> <add-icon /></template>
               </t-button>
+              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text">
+                <template #icon> <align-top-icon /></template>
+              </t-button>
+              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text">
+                <template #icon> <align-bottom-icon /></template>
+              </t-button>
             </template>
             <template #icon="{ node }">
               <icon :name="showNodeIcon(node)" />
@@ -47,7 +53,7 @@
   </t-row>
 </template>
 <script setup lang="ts">
-import { AddIcon, DeleteIcon, EditIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
+import { AddIcon, AlignBottomIcon, AlignTopIcon, DeleteIcon, EditIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
 import type { TreeNodeModel } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { ref } from 'vue';
