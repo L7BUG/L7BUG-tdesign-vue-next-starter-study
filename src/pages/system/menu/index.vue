@@ -1,6 +1,6 @@
 <template>
   <t-row :gutter="12">
-    <t-col :span="3" class="table-tree-container">
+    <t-col :span="4" class="table-tree-container">
       <div class="list-tree-wrapper">
         <div class="list-tree-operator">
           <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
@@ -30,10 +30,22 @@
               <t-button size="small" shape="square" variant="text" @click="addNode(node)">
                 <template #icon> <add-icon /></template>
               </t-button>
-              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text">
+              <t-button
+                v-if="node.data.id !== '-1'"
+                size="small"
+                shape="square"
+                variant="text"
+                @click="addMenuSortVal(node, -3)"
+              >
                 <template #icon> <align-top-icon /></template>
               </t-button>
-              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text">
+              <t-button
+                v-if="node.data.id !== '-1'"
+                size="small"
+                shape="square"
+                variant="text"
+                @click="addMenuSortVal(node, 3)"
+              >
                 <template #icon> <align-bottom-icon /></template>
               </t-button>
             </template>
@@ -44,7 +56,7 @@
         </div>
       </div>
     </t-col>
-    <t-col :span="9">
+    <t-col :span="8">
       <!--      <div class="list-tree-content"> -->
       <!--        <common-table /> -->
       <!--      </div> -->
@@ -96,6 +108,13 @@ const deleteNode = (node: TreeNodeModel) => {
     }
   });
 };
+const addMenuSortVal = (node: TreeNodeModel, sort: number) => {
+  menuApi.addMenuSortVal(`${node.value}`, sort).then((resp) => {
+    if (resp) {
+      getAllRootNodes();
+    }
+  });
+};
 const addNode = (node: TreeNodeModel) => {
   console.log(node.data.id);
   fromData.value = { ...INITIAL_MENU_DATA };
@@ -103,7 +122,11 @@ const addNode = (node: TreeNodeModel) => {
   MessagePlugin.info(`正在往[${node.data.meta.title.zh_CN}]节点下新增子节点`);
 };
 const editNode = (node: TreeNodeModel) => {
-  fromData.value = JSON.parse(JSON.stringify(node.data));
+  menuApi.getById(`${node.value}`).then((resp) => {
+    if (resp) {
+      fromData.value = resp;
+    }
+  });
 };
 const showNodeName = function (node: TreeNodeModel): string {
   console.log(node);

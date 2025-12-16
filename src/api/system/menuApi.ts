@@ -11,6 +11,12 @@ class MenuApi {
     });
   }
 
+  public async getById(id: string): Promise<MenuNodeResponse> {
+    return request.get<MenuNodeResponse>({
+      url: `${api.base}/${id}`,
+    });
+  }
+
   public async createMenu(menu: MenuNodeRequest): Promise<MenuNodeResponse> {
     return request.post<MenuNodeResponse>({
       url: `${api.base}`,
@@ -28,6 +34,12 @@ class MenuApi {
   public async deleteById(id: string): Promise<boolean> {
     return request.delete<boolean>({
       url: `${api.base}/${id}`,
+    });
+  }
+
+  public async addMenuSortVal(id: string, sort: number): Promise<boolean> {
+    return request.put<boolean>({
+      url: `${api.base}/${id}/sort/${sort}`,
     });
   }
 }
