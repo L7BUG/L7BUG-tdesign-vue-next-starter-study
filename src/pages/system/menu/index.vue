@@ -27,9 +27,6 @@
               <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text" @click="editNode(node)">
                 <template #icon> <edit-icon /></template>
               </t-button>
-              <t-button size="small" shape="square" variant="text" @click="addNode(node)">
-                <template #icon> <add-icon /></template>
-              </t-button>
               <t-button
                 v-if="node.data.id !== '-1'"
                 size="small"
@@ -47,6 +44,9 @@
                 @click="addMenuSortVal(node, 3)"
               >
                 <template #icon> <align-bottom-icon /></template>
+              </t-button>
+              <t-button size="small" shape="square" variant="text" @click="addNode(node)">
+                <template #icon> <add-icon /></template>
               </t-button>
             </template>
             <template #icon="{ node }">
