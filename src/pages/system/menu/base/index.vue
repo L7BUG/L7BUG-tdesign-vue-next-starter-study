@@ -76,7 +76,7 @@
           <t-col :span="6">
             <t-form-item label="图标" name="name">
               <t-select v-model="menuFormData.meta.icon" placeholder="请选择" :style="style" :filter="filterMethod">
-                <t-option v-for="item in options" :key="item.stem" :value="item.stem" class="overlay-options">
+                <t-option v-for="item in iconOptions" :key="item.stem" :value="item.stem" class="overlay-options">
                   <div><t-icon :name="item.stem" />[{{ item.stem }}]</div>
                 </t-option>
                 <template #valueDisplay
@@ -119,7 +119,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['submit']);
 const style = { width: '322px' };
-const options = ref(manifest);
+const iconOptions = ref(manifest);
 const menuFormData = ref<MenuNodeResponse>(props.formData);
 watch(
   () => props.formData,
