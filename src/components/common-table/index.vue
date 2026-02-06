@@ -52,10 +52,23 @@
         </t-col>
 
         <t-col :span="2" class="operation-container">
-          <t-button theme="primary" type="submit" :style="{ marginLeft: 'var(--td-comp-margin-s)' }">
-            {{ t('components.commonTable.query') }}
-          </t-button>
-          <t-button type="reset" variant="base" theme="default"> {{ t('components.commonTable.reset') }} </t-button>
+          <t-row :gutter="[1, 8]">
+            <t-col :span="6">
+              <t-button theme="primary" type="submit" :style="{ marginLeft: 'var(--td-comp-margin-s)' }">
+                {{ t('components.commonTable.query') }}
+              </t-button>
+            </t-col>
+            <t-col :span="6">
+              <t-button type="reset" variant="base" theme="default"> {{ t('components.commonTable.reset') }} </t-button>
+            </t-col>
+            <t-col :span="6">
+              <t-button> {{ t('pages.listBase.create') }} </t-button>
+            </t-col>
+            <t-col :span="6">
+              <t-button variant="base" theme="default"> {{ t('pages.listBase.export') }}</t-button>
+            </t-col>
+          </t-row>
+          <br />
         </t-col>
       </t-row>
     </t-form>
