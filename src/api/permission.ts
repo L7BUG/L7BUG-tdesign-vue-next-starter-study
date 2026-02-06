@@ -2,7 +2,7 @@ import type { RouteItem } from '@/api/model/permissionModel';
 import { request } from '@/utils/request';
 
 const Api = {
-  MenuList: '/menu-list',
+  MenuList: '/system/menu-list',
 };
 
 export function getMenuList() {

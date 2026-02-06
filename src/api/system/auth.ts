@@ -1,6 +1,6 @@
 const api = {
-  login: '/auth/login',
-  logout: '/auth/logout',
+  login: '/system/auth/login',
+  logout: '/system/auth/logout',
 };
 import { request } from '@/utils/request';
 

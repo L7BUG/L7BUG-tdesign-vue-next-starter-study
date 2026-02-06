@@ -2,7 +2,7 @@ import type { MenuNodeRequest, MenuNodeResponse } from '@/api/system/model/menuM
 import { request } from '@/utils/request';
 
 const api = {
-  base: '/menu',
+  base: '/system/menu',
 };
 class MenuApi {
   public async getRoot(): Promise<MenuNodeResponse> {

@@ -8,8 +8,8 @@ import type {
 import { request } from '@/utils/request';
 
 const api = {
-  base: '/user',
-  currentUserInfo: '/user/current-user-info',
+  base: '/system/user',
+  currentUserInfo: '/system/user/current-user-info',
 };
 
 class UserApi {
