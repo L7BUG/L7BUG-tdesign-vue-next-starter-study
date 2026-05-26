@@ -57,8 +57,8 @@ class RoleApi {
     });
   }
 
-  async getMenuTreeByRoleId(id: number | string): Promise<MenuNodeResponse> {
-    return request.get<MenuNodeResponse>({
+  async getMenuTreeByRoleId(id: number | string): Promise<MenuNodeResponse[]> {
+    return request.get<MenuNodeResponse[]>({
       url: `${api.base}/${id}/menus/tree`,
     });
   }

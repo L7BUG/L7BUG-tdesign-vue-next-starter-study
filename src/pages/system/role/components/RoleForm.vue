@@ -70,7 +70,7 @@
         <div v-if="permissionDiff.removed.length" class="diff-section diff-removed">
           <div class="diff-label">将移除的权限</div>
           <div v-for="name in permissionDiff.removed" :key="name" class="diff-item">
-            <remove-circle-icon size="14px" />
+            <minus-circle-icon size="14px" />
             <span>{{ name }}</span>
           </div>
         </div>
@@ -83,7 +83,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { AddCircleIcon, RemoveCircleIcon } from 'tdesign-icons-vue-next';
+import { AddCircleIcon, MinusCircleIcon } from 'tdesign-icons-vue-next';
 import type { SubmitContext } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
@@ -210,7 +210,7 @@ watch(
     permissionLoading.value = true;
     try {
       const [tree, menuIds] = await Promise.all([loadMenuTree(), roleApi.getMenuIdsByRoleId(id)]);
-      menuTree.value = [tree];
+      menuTree.value = tree;
       checkedKeys.value = menuIds;
       initialCheckedKeys.value = [...menuIds];
     } finally {
@@ -219,8 +219,9 @@ watch(
   },
 );
 
-const loadMenuTree = async (): Promise<MenuNodeResponse> => {
-  return roleApi.getMenuTreeByRoleId(formData.value.fatherId);
+const loadMenuTree = async (): Promise<MenuNodeResponse[]> => {
+  const fid = formData.value.fatherId ?? -1;
+  return roleApi.getMenuTreeByRoleId(fid);
 };
 
 const savePermissions = async () => {
