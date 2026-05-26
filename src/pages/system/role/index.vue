@@ -8,7 +8,14 @@
               <search-icon size="16px" />
             </template>
           </t-input>
-          <t-tree :data="roleTree" hover expand-on-click-node :filter="filterByText" :loading="treeLoading">
+          <t-tree
+            :data="roleTree"
+            hover
+            expand-on-click-node
+            :filter="filterByText"
+            :loading="treeLoading"
+            :keys="{ label: 'name', value: 'id', children: 'children' }"
+          >
             <template #label="{ node }">
               <span>{{ node.label }}</span>
             </template>
@@ -82,7 +89,7 @@ const deleteBody = computed(() => {
 
 const filterByText = computed(() => {
   if (!filterText.value) return undefined;
-  return (node: any) => node.data?.label?.includes(filterText.value) ?? false;
+  return (node: any) => node.label?.includes(filterText.value) ?? false;
 });
 
 const refreshTree = async () => {
@@ -129,12 +136,12 @@ const onConfirmDelete = async () => {
 };
 
 const moveUp = async (node: TreeNodeModel) => {
-  await roleApi.addRoleSortVal(node.value, -3);
+  await roleApi.addSortVal(node.value, -3);
   refreshTree();
 };
 
 const moveDown = async (node: TreeNodeModel) => {
-  await roleApi.addRoleSortVal(node.value, 3);
+  await roleApi.addSortVal(node.value, 3);
   refreshTree();
 };
 </script>
