@@ -1,168 +1,180 @@
 <template>
   <t-row :gutter="12">
-    <t-col :span="4" class="table-tree-container">
-      <div class="list-tree-wrapper">
-        <div class="list-tree-operator">
-          <t-input v-model="filterText" :placeholder="t('pages.listTree.placeholder')" @change="onInput">
-            <template #suffix-icon>
-              <search-icon size="var(--td-comp-size-xxxs)" />
-            </template>
-          </t-input>
-          <t-tree :data="menuTree" hover expand-on-click-node :filter="filterByText">
-            <template #label="{ node }">
-              <span :title="node.label">
-                {{ showNodeName(node) }}
-              </span>
-            </template>
-            <template #operations="{ node }">
-              <t-button
-                v-if="node.isLeaf() && node.data.id !== '-1'"
-                size="small"
-                shape="square"
-                variant="text"
-                @click="deleteNode(node)"
-              >
-                <template #icon> <delete-icon /></template>
-              </t-button>
-              <t-button v-if="node.data.id !== '-1'" size="small" shape="square" variant="text" @click="editNode(node)">
-                <template #icon> <edit-icon /></template>
-              </t-button>
-              <t-button
-                v-if="node.data.id !== '-1'"
-                size="small"
-                shape="square"
-                variant="text"
-                @click="addMenuSortVal(node, -3)"
-              >
-                <template #icon> <align-top-icon /></template>
-              </t-button>
-              <t-button
-                v-if="node.data.id !== '-1'"
-                size="small"
-                shape="square"
-                variant="text"
-                @click="addMenuSortVal(node, 3)"
-              >
-                <template #icon> <align-bottom-icon /></template>
-              </t-button>
-              <t-button size="small" shape="square" variant="text" @click="addNode(node)">
-                <template #icon> <add-icon /></template>
-              </t-button>
-            </template>
-            <template #icon="{ node }">
-              <icon :name="showNodeIcon(node)" />
-            </template>
-          </t-tree>
-        </div>
-      </div>
+    <t-col :span="4">
+      <t-card :bordered="false" class="tree-card">
+        <t-input v-model="filterText" placeholder="搜索菜单" clearable>
+          <template #suffix-icon>
+            <search-icon size="16px" />
+          </template>
+        </t-input>
+        <t-tree :data="menuTree" hover expand-on-click-node :filter="filterByText" :loading="treeLoading">
+          <template #label="{ node }">
+            <span>{{ nodeLabel(node) }}</span>
+          </template>
+          <template #operations="{ node }">
+            <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="addChild(node)">
+              <template #icon><add-icon /></template>
+            </t-button>
+            <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="editNode(node)">
+              <template #icon><edit-icon /></template>
+            </t-button>
+            <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="handleDelete(node)">
+              <template #icon><delete-icon /></template>
+            </t-button>
+            <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveUp(node)">
+              <template #icon><align-top-icon /></template>
+            </t-button>
+            <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveDown(node)">
+              <template #icon><align-bottom-icon /></template>
+            </t-button>
+          </template>
+          <template #icon="{ node }">
+            <t-icon :name="node.data.meta?.icon || 'folder'" />
+          </template>
+        </t-tree>
+      </t-card>
     </t-col>
     <t-col :span="8">
-      <!--      <div class="list-tree-content"> -->
-      <!--        <common-table /> -->
-      <!--      </div> -->
-      <base-from :form-data="fromData" @submit="() => getAllRootNodes()" />
+      <menu-form :data="selectedMenu" @submit="refreshTree" />
     </t-col>
   </t-row>
+
+  <t-dialog v-model:visible="deleteVisible" header="确认删除" :body="deleteBody" @confirm="onConfirmDelete" />
 </template>
 <script setup lang="ts">
-import { AddIcon, AlignBottomIcon, AlignTopIcon, DeleteIcon, EditIcon, Icon, SearchIcon } from 'tdesign-icons-vue-next';
+import { AddIcon, AlignBottomIcon, AlignTopIcon, DeleteIcon, EditIcon, SearchIcon } from 'tdesign-icons-vue-next';
 import type { TreeNodeModel } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
-import { t } from '@/locales';
 import { useLocale } from '@/locales/useLocale';
-import { INITIAL_MENU_DATA } from '@/pages/system/menu/base/constants';
-import baseFrom from '@/pages/system/menu/base/index.vue';
+
+import MenuForm from './components/MenuForm.vue';
 
 defineOptions({
   name: 'SystemMenu',
 });
-const fromData = ref<MenuNodeResponse>({ ...INITIAL_MENU_DATA });
-const { locale } = useLocale();
-console.log('tttt::', locale.value);
-const filterByText = ref();
-const filterText = ref();
-const menuTree = ref<MenuNodeResponse[]>([]);
 
-const onInput = () => {
-  filterByText.value = (node: MenuNodeResponse) => {
-    return node.label.includes(filterText.value);
-  };
+const INITIAL_MENU_DATA: MenuNodeResponse = {
+  fatherId: -1,
+  fullId: '',
+  path: '',
+  name: '',
+  component: '',
+  type: 'FOLDER',
+  enable: true,
+  sort: 0,
+  meta: {
+    title: {
+      zh_CN: '',
+      en_US: '',
+    },
+    icon: 'folder',
+  },
 };
-const getAllRootNodes = () => {
-  menuApi.getRoot().then((response) => {
-    menuTree.value = [response];
-  });
+
+const { locale } = useLocale();
+
+const filterText = ref('');
+const menuTree = ref<MenuNodeResponse[]>([]);
+const treeLoading = ref(false);
+const selectedMenu = ref<MenuNodeResponse>({ ...INITIAL_MENU_DATA });
+
+const deleteVisible = ref(false);
+const deleteTarget = ref<TreeNodeModel | null>(null);
+const deleteBody = computed(() => {
+  if (deleteTarget.value) {
+    const label = getNodeLabel(deleteTarget.value);
+    return `确认删除菜单「${label}」吗？删除后数据将无法恢复。`;
+  }
+  return '';
+});
+
+const filterByText = computed(() => {
+  if (!filterText.value) return undefined;
+  return (node: any) => node.data?.label?.includes(filterText.value) ?? false;
+});
+
+const refreshTree = async () => {
+  treeLoading.value = true;
+  try {
+    const root = await menuApi.getRoot();
+    menuTree.value = [root];
+  } finally {
+    treeLoading.value = false;
+  }
 };
-getAllRootNodes();
-const deleteNode = (node: TreeNodeModel) => {
-  console.log(node);
-  console.log(JSON.stringify(node.data.meta));
-  console.log(node.data.meta.title);
-  menuApi.deleteById(Number(node.value)).then((resp) => {
-    if (resp) {
-      getAllRootNodes();
+
+refreshTree();
+
+const isNotRoot = (node: TreeNodeModel) => node.data.id !== '-1';
+
+const getNodeLabel = (node: TreeNodeModel): string => {
+  const meta = node.data.meta;
+  if (meta?.title) {
+    if (meta.title[locale.value]) {
+      return meta.title[locale.value];
     }
-  });
-};
-const addMenuSortVal = (node: TreeNodeModel, sort: number) => {
-  menuApi.addMenuSortVal(Number(node.value), sort).then((resp) => {
-    if (resp) {
-      getAllRootNodes();
-    }
-  });
-};
-const addNode = (node: TreeNodeModel) => {
-  console.log(node.data.id);
-  fromData.value = { ...INITIAL_MENU_DATA };
-  fromData.value.fatherId = node.data.id;
-  MessagePlugin.info(`正在往[${node.data.meta.title.zh_CN}]节点下新增子节点`);
-};
-const editNode = (node: TreeNodeModel) => {
-  menuApi.getById(Number(node.value)).then((resp) => {
-    if (resp) {
-      fromData.value = resp;
-    }
-  });
-};
-const showNodeName = function (node: TreeNodeModel): string {
-  console.log(node);
-  if (node.data.meta) {
-    const meta = JSON.parse(JSON.stringify(node.data.meta));
     if (meta.title.zh_CN) {
-      if (meta.title[locale.value]) {
-        return meta.title[locale.value];
-      }
       return meta.title.zh_CN;
     }
   }
-  return node.label;
+  return node.label || '';
 };
-const showNodeIcon = (node: TreeNodeModel): string => {
-  console.log();
-  if (node.data.meta.icon) {
-    return node.data.meta.icon;
+
+const nodeLabel = (node: TreeNodeModel): string => getNodeLabel(node);
+
+const addChild = (node: TreeNodeModel) => {
+  selectedMenu.value = {
+    ...INITIAL_MENU_DATA,
+    fatherId: node.data.id,
+  };
+  MessagePlugin.info(`正在往「${getNodeLabel(node)}」节点下新增子节点`);
+};
+
+const editNode = async (node: TreeNodeModel) => {
+  const resp = await menuApi.getById(node.value);
+  if (resp) {
+    selectedMenu.value = resp;
   }
-  return 'folder';
+};
+
+const handleDelete = (node: TreeNodeModel) => {
+  deleteTarget.value = node;
+  deleteVisible.value = true;
+};
+
+const onConfirmDelete = async () => {
+  if (!deleteTarget.value) return;
+  await menuApi.deleteById(deleteTarget.value.value);
+  MessagePlugin.success('删除成功');
+  deleteVisible.value = false;
+  deleteTarget.value = null;
+  refreshTree();
+};
+
+const moveUp = async (node: TreeNodeModel) => {
+  await menuApi.addMenuSortVal(node.value, -3);
+  refreshTree();
+};
+
+const moveDown = async (node: TreeNodeModel) => {
+  await menuApi.addMenuSortVal(node.value, 3);
+  refreshTree();
 };
 </script>
 <style lang="less" scoped>
-.table-tree-container {
-  background-color: var(--td-bg-color-container);
-  border-radius: var(--td-radius-medium);
+.tree-card {
+  height: 100%;
 
-  .t-tree {
+  :deep(.t-card__body) {
+    padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
+  }
+
+  :deep(.t-tree) {
     margin-top: var(--td-comp-margin-xxl);
   }
-}
-.list-tree-wrapper {
-  overflow-y: auto;
-}
-.list-tree-operator {
-  padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
-  overflow: auto;
 }
 </style>

@@ -6,7 +6,7 @@ export interface CurrentUserInfo {
 }
 
 export interface SystemUserInfo {
-  id: number;
+  id: number | string;
   username: string;
   nickname: string;
   status: number;

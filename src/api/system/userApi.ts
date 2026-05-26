@@ -26,14 +26,14 @@ class UserApi {
     });
   }
 
-  async update(id: number, info: SystemUserUpdate): Promise<void> {
+  async update(id: number | string, info: SystemUserUpdate): Promise<void> {
     return request.put<void>({
       url: `${api.base}/${id}`,
       params: info,
     });
   }
 
-  async deleteById(id: number): Promise<void> {
+  async deleteById(id: number | string): Promise<void> {
     return request.delete<void>({
       url: `${api.base}/${id}`,
     });

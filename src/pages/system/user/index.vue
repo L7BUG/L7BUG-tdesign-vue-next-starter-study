@@ -100,7 +100,7 @@ const pagination = ref({
 const pageQuery = ref({ pageNum: 1, pageSize: 20 });
 
 const formDialogVisible = ref(false);
-const editId = ref<number | null>(null);
+const editId = ref<number | string | null>(null);
 const canEditUsername = ref(true);
 const createUser = ref<SystemUserUpdate>({ ...INITIAL_USER_DATA });
 

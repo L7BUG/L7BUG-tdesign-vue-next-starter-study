@@ -30,7 +30,7 @@ import { userApi } from '@/api/system/userApi';
 
 const props = defineProps({
   id: {
-    type: Number,
+    type: [Number, String] as PropType<number | string>,
     default: null,
   },
   visible: {

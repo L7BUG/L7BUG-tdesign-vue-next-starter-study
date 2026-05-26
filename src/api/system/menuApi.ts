@@ -12,7 +12,7 @@ class MenuApi {
     });
   }
 
-  async getById(id: number): Promise<MenuNodeResponse> {
+  async getById(id: number | string): Promise<MenuNodeResponse> {
     return request.get<MenuNodeResponse>({
       url: `${api.base}/${id}`,
     });
@@ -25,20 +25,20 @@ class MenuApi {
     });
   }
 
-  async updateMenu(id: number, menu: MenuNodeRequest): Promise<boolean> {
+  async updateMenu(id: number | string, menu: MenuNodeRequest): Promise<boolean> {
     return request.put<boolean>({
       url: `${api.base}/${id}`,
       params: menu,
     });
   }
 
-  async deleteById(id: number): Promise<boolean> {
+  async deleteById(id: number | string): Promise<boolean> {
     return request.delete<boolean>({
       url: `${api.base}/${id}`,
     });
   }
 
-  async addMenuSortVal(id: number, sort: number): Promise<boolean> {
+  async addMenuSortVal(id: number | string, sort: number): Promise<boolean> {
     return request.put<boolean>({
       url: `${api.base}/${id}/sort/${sort}`,
     });

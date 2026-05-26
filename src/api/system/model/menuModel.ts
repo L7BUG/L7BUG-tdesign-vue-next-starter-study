@@ -9,7 +9,7 @@ export interface Meta {
 }
 
 export interface MenuNodeRequest {
-  fatherId?: number | null;
+  fatherId?: number | string | null;
   fullId?: string;
   path?: string;
   name?: string;
@@ -21,7 +21,7 @@ export interface MenuNodeRequest {
 }
 
 export interface MenuNodeResponse extends MenuNodeRequest {
-  id?: number;
+  id?: number | string;
   children?: MenuNodeResponse[];
   label?: string;
   value?: string;
