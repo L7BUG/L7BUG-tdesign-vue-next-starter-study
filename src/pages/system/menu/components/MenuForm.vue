@@ -5,7 +5,19 @@
       <t-row :gutter="[32, 24]">
         <t-col :span="6">
           <t-form-item label="父节点" name="fatherId">
-            <t-input :value="fatherLabel" disabled />
+            <t-tree-select
+              v-model="formData.fatherId"
+              :data="treeData"
+              :keys="{ value: 'id', label: 'label', children: 'children' }"
+              placeholder="请选择父节点"
+              filterable
+              clearable
+            />
+          </t-form-item>
+        </t-col>
+        <t-col :span="6">
+          <t-form-item label="全路径ID" name="fullId">
+            <t-input :value="formData.fullId" disabled />
           </t-form-item>
         </t-col>
         <t-col :span="6">
@@ -81,7 +93,7 @@ import { manifest } from 'tdesign-icons-vue-next';
 import type { SubmitContext } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
@@ -108,6 +120,10 @@ const props = defineProps({
           icon: 'folder',
         },
       }) as MenuNodeResponse,
+  },
+  treeData: {
+    type: Array as PropType<MenuNodeResponse[]>,
+    default: (): MenuNodeResponse[] => [],
   },
 });
 
@@ -140,13 +156,6 @@ const INITIAL_DATA: MenuNodeResponse = {
 const iconOptions = ref(manifest);
 const formData = ref<MenuNodeResponse>({ ...INITIAL_DATA });
 const submitLoading = ref(false);
-
-const fatherLabel = computed(() => {
-  if (formData.value.fatherId === -1 || formData.value.fatherId == null) {
-    return '根节点';
-  }
-  return `父节点 ID: ${formData.value.fatherId}`;
-});
 
 watch(
   () => props.data,
