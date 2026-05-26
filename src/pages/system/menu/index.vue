@@ -102,14 +102,14 @@ const deleteNode = (node: TreeNodeModel) => {
   console.log(node);
   console.log(JSON.stringify(node.data.meta));
   console.log(node.data.meta.title);
-  menuApi.deleteById(`${node.value}`).then((resp) => {
+  menuApi.deleteById(Number(node.value)).then((resp) => {
     if (resp) {
       getAllRootNodes();
     }
   });
 };
 const addMenuSortVal = (node: TreeNodeModel, sort: number) => {
-  menuApi.addMenuSortVal(`${node.value}`, sort).then((resp) => {
+  menuApi.addMenuSortVal(Number(node.value), sort).then((resp) => {
     if (resp) {
       getAllRootNodes();
     }
@@ -122,7 +122,7 @@ const addNode = (node: TreeNodeModel) => {
   MessagePlugin.info(`正在往[${node.data.meta.title.zh_CN}]节点下新增子节点`);
 };
 const editNode = (node: TreeNodeModel) => {
-  menuApi.getById(`${node.value}`).then((resp) => {
+  menuApi.getById(Number(node.value)).then((resp) => {
     if (resp) {
       fromData.value = resp;
     }

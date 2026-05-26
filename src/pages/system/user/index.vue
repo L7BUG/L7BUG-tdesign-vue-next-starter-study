@@ -1,212 +1,219 @@
 <template>
   <div>
-    <div class="list-card-operation">
-      <t-button @click="openCreate">
-        <template #icon><user-add-icon /></template>
+    <t-card class="list-card-container" :bordered="false">
+      <t-row justify="space-between">
+        <div class="left-operation-container">
+          <t-button @click="openCreate">
+            <template #icon><user-add-icon /></template>
+            新增用户
+          </t-button>
+          <p v-if="selectedRowKeys.length > 0" class="selected-count">已选 {{ selectedRowKeys.length }} 项</p>
+        </div>
+        <div class="search-input">
+          <t-input v-model="searchValue" placeholder="搜索用户名" clearable @clear="fetchData">
+            <template #suffix-icon>
+              <search-icon v-if="!searchValue" size="16px" />
+            </template>
+          </t-input>
+        </div>
+      </t-row>
 
-        新增用户
-      </t-button>
-      <div class="search-input">
-        <t-input v-model="searchValue" :placeholder="t('pages.listCard.placeholder')" :on-enter="fetchData" clearable>
-          <template #suffix-icon>
-            <search-icon v-if="searchValue === ''" size="var(--td-comp-size-xxxs)" />
-          </template>
-        </t-input>
-      </div>
-    </div>
+      <t-table
+        :data="userInfoList"
+        :columns="COLUMNS"
+        :row-key="rowKey"
+        vertical-align="top"
+        :hover="true"
+        :pagination="pagination"
+        :loading="dataLoading"
+        :selected-row-keys="selectedRowKeys"
+        @page-change="onPageChange"
+        @select-change="onSelectChange"
+      >
+        <template #status="{ row }">
+          <t-tag :theme="row.status === 1 ? 'success' : 'default'" @click="toggleStatus(row)">
+            {{ row.status === 1 ? '启用' : '禁用' }}
+          </t-tag>
+        </template>
+        <template #op="{ row }">
+          <t-space>
+            <t-link theme="primary" @click="openEdit(row)">编辑</t-link>
+            <t-link theme="danger" @click="handleClickDelete(row)">删除</t-link>
+          </t-space>
+        </template>
+      </t-table>
+    </t-card>
 
     <dialog-form
-      :id="id"
+      :id="editId"
       v-model:visible="formDialogVisible"
       :can-edit-username="canEditUsername"
       :data="createUser"
       @update:visible="fetchData"
     />
 
-    <template v-if="pagination.total > 0 && !dataLoading">
-      <div class="list-card-items">
-        <t-row :gutter="[16, 16]">
-          <t-col v-for="item in userInfoList" :key="item.id" :lg="4" :xs="6" :xl="3">
-            <user-card
-              class="list-card-item"
-              :info="item"
-              @item-update="(args) => fetchData()"
-              @item-can-edit="() => openEdit(item)"
-              @delete-item="handleDeleteItem"
-            />
-          </t-col>
-        </t-row>
-      </div>
-      <div class="list-card-pagination">
-        <t-pagination
-          v-model="pagination.current"
-          v-model:page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-size-options="[8, 12, 16, 20, 24]"
-          @page-size-change="onPageSizeChange"
-          @current-change="onCurrentChange"
-        />
-      </div>
-    </template>
-
-    <div v-else-if="dataLoading" class="list-card-loading">
-      <t-loading size="large" text="加载数据中..." />
-    </div>
-
-    <t-dialog
-      v-model:visible="confirmVisible"
-      header="确认删除所选产品？"
-      :body="confirmBody"
-      @confirm="onConfirmDelete"
-    />
+    <t-dialog v-model:visible="confirmVisible" header="确认删除" :body="confirmBody" @confirm="onConfirmDelete" />
   </div>
 </template>
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core';
 import { SearchIcon, UserAddIcon } from 'tdesign-icons-vue-next';
+import type { PrimaryTableCol, TableRowData } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 import type { SystemUserInfo, SystemUserUpdate } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
-import type { CardProductType } from '@/components/product-card/index.vue';
-import UserCard from '@/components/user-card/index.vue';
-import { t } from '@/locales';
 
 import DialogForm from './components/DialogForm.vue';
 
 defineOptions({
   name: 'SystemUser',
 });
+
+const COLUMNS: PrimaryTableCol<TableRowData>[] = [
+  { colKey: 'row-select', type: 'multiple', width: 50, fixed: 'left' },
+  { title: '用户名', align: 'left', colKey: 'username', width: 160, ellipsis: true },
+  { title: '用户昵称', colKey: 'nickname', width: 200, ellipsis: true },
+  { title: '状态', colKey: 'status', width: 100 },
+  { title: '创建时间', colKey: 'createTime', width: 180 },
+  { title: '操作', align: 'left', fixed: 'right', width: 140, colKey: 'op' },
+];
+
 const INITIAL_USER_DATA: SystemUserUpdate = {
   username: '',
   nickname: '',
   rawPassword: '',
   status: 1,
 };
-const id = ref<string>(null);
-const pagination = ref({ current: 1, pageSize: 8, total: 0 });
-const deleteProduct = ref(undefined);
-const canEditUsername = ref(true);
+
+const rowKey = 'id';
 const userInfoList = ref<SystemUserInfo[]>([]);
-const dataLoading = ref(true);
-const fetchData = () => {
-  userInfoList.value = [];
-  userApi
-    .page({
-      asc: false,
-      column: 'id',
-      current: pagination.value.current,
-      size: pagination.value.pageSize,
-      username: searchValue.value,
-    })
-    .then((page) => {
-      userInfoList.value = page.data;
-      pagination.value = {
-        ...pagination.value,
-        total: page.total << 0,
-      };
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      dataLoading.value = false;
+const dataLoading = ref(false);
+const searchValue = ref('');
+const selectedRowKeys = ref<(string | number)[]>([]);
+const pagination = ref({
+  defaultCurrent: 1,
+  defaultPageSize: 20,
+  total: 0,
+});
+const pageQuery = ref({ pageNum: 1, pageSize: 20 });
+
+const formDialogVisible = ref(false);
+const editId = ref<number | null>(null);
+const canEditUsername = ref(true);
+const createUser = ref<SystemUserUpdate>({ ...INITIAL_USER_DATA });
+
+const confirmVisible = ref(false);
+const deleteTarget = ref<SystemUserInfo | null>(null);
+const confirmBody = computed(() => {
+  if (deleteTarget.value) {
+    return `确认删除用户「${deleteTarget.value.nickname}」吗？删除后数据将无法恢复。`;
+  }
+  return '';
+});
+
+const fetchData = async () => {
+  dataLoading.value = true;
+  try {
+    const page = await userApi.page({
+      pageNum: pageQuery.value.pageNum,
+      pageSize: pageQuery.value.pageSize,
+      username: searchValue.value || undefined,
     });
+    userInfoList.value = page.data;
+    pagination.value = {
+      ...pagination.value,
+      total: Number(page.total),
+    };
+  } finally {
+    dataLoading.value = false;
+  }
 };
 
-const confirmBody = computed(() =>
-  deleteProduct.value ? `确认删除后${deleteProduct.value.name}的所有产品信息将被清空, 且无法恢复` : '',
-);
+const debouncedSearch = useDebounceFn(() => {
+  pageQuery.value.pageNum = 1;
+  fetchData();
+}, 300);
+
+watch(searchValue, () => {
+  debouncedSearch();
+});
 
 onMounted(() => {
-  console.log('onMounted');
   fetchData();
 });
 
-const formDialogVisible = ref(false);
-const searchValue = ref('');
-const confirmVisible = ref(false);
-const createUser = ref<SystemUserUpdate>({ ...INITIAL_USER_DATA });
-const onPageSizeChange = (size: number) => {
-  pagination.value.pageSize = size;
-  pagination.value.current = 1;
+const onPageChange = ({ current, pageSize }: { current: number; pageSize: number }) => {
+  pageQuery.value = { pageNum: current, pageSize };
   fetchData();
-  console.log('onPageSizeChange');
 };
-const onCurrentChange = (current: number) => {
-  pagination.value.current = current;
-  fetchData();
-  console.log('onCurrentChange');
+
+const onSelectChange = (value: (string | number)[]) => {
+  selectedRowKeys.value = value;
 };
-const handleDeleteItem = (product: CardProductType) => {
-  confirmVisible.value = true;
-  deleteProduct.value = product;
-};
-const onConfirmDelete = () => {
-  const { index } = deleteProduct.value;
-  userInfoList.value.splice(index - 1, 1);
-  confirmVisible.value = false;
-  MessagePlugin.success('删除成功');
-};
-const openEdit = (item: SystemUserInfo) => {
+
+const openCreate = () => {
+  editId.value = null;
+  canEditUsername.value = true;
+  createUser.value = { ...INITIAL_USER_DATA };
   formDialogVisible.value = true;
+};
+
+const openEdit = (item: SystemUserInfo) => {
+  editId.value = item.id;
   canEditUsername.value = false;
-  id.value = item.id;
   createUser.value = {
     username: item.username,
     nickname: item.nickname,
     rawPassword: '',
   };
-};
-const openCreate = () => {
   formDialogVisible.value = true;
-  canEditUsername.value = true;
-  id.value = null;
-  createUser.value = { ...INITIAL_USER_DATA };
+};
+
+const handleClickDelete = (row: SystemUserInfo) => {
+  deleteTarget.value = row;
+  confirmVisible.value = true;
+};
+
+const onConfirmDelete = async () => {
+  if (!deleteTarget.value) return;
+  await userApi.deleteById(deleteTarget.value.id);
+  MessagePlugin.success('删除成功');
+  confirmVisible.value = false;
+  deleteTarget.value = null;
+  fetchData();
+};
+
+const toggleStatus = async (row: SystemUserInfo) => {
+  const newStatus = row.status === 1 ? 0 : 1;
+  await userApi.update(row.id, { username: row.username, nickname: row.nickname, status: newStatus });
+  row.status = newStatus;
+  MessagePlugin.success('修改成功');
 };
 </script>
 <style lang="less" scoped>
-.list-card {
-  height: 100%;
+.list-card-container {
+  padding: var(--td-comp-paddingTB-xxl) var(--td-comp-paddingLR-xxl);
 
-  &-operation {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--td-comp-margin-xxl);
-
-    .search-input {
-      width: 360px;
-    }
+  :deep(.t-card__body) {
+    padding: 0;
   }
+}
 
-  &-item {
-    padding: var(--td-comp-paddingTB-xl) var(--td-comp-paddingTB-xl);
+.left-operation-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--td-comp-margin-xxl);
 
-    :deep(.t-card__header) {
-      padding: 0;
-    }
-
-    :deep(.t-card__body) {
-      padding: 0;
-      margin-top: var(--td-comp-margin-xxl);
-      margin-bottom: var(--td-comp-margin-xxl);
-    }
-
-    :deep(.t-card__footer) {
-      padding: 0;
-    }
+  .selected-count {
+    display: inline-block;
+    margin-left: var(--td-comp-margin-l);
+    color: var(--td-text-color-secondary);
   }
+}
 
-  &-pagination {
-    padding: var(--td-comp-paddingTB-xl) var(--td-comp-paddingTB-xl);
-  }
-
-  &-loading {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.search-input {
+  width: 360px;
 }
 </style>

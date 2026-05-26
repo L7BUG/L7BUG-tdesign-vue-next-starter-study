@@ -1,17 +1,10 @@
 <template>
   <t-dialog v-model:visible="formVisible" header="用户" :width="680" :footer="false">
     <template #body>
-      <!-- 表单内容 -->
       <t-form :data="formData" :rules="rules" :label-width="100" @submit="onSubmit">
         <t-form-item label="用户名" name="username">
           <t-input v-model="formData.username" :style="{ width: '480px' }" :disabled="!canEditUsername" />
         </t-form-item>
-        <!--        <t-form-item label="用户状态" name="status"> -->
-        <!--          <t-radio-group v-model="formData.status"> -->
-        <!--            <t-radio value="0">禁用</t-radio> -->
-        <!--            <t-radio value="1">启用</t-radio> -->
-        <!--          </t-radio-group> -->
-        <!--        </t-form-item> -->
         <t-form-item label="用户昵称" name="nickname">
           <t-input v-model="formData.nickname" :style="{ width: '480px' }" />
         </t-form-item>
@@ -20,7 +13,7 @@
         </t-form-item>
         <t-form-item style="float: right">
           <t-button variant="outline" @click="onClickCloseBtn">取消</t-button>
-          <t-button theme="primary" type="submit">确定</t-button>
+          <t-button theme="primary" type="submit" :loading="submitLoading">确定</t-button>
         </t-form-item>
       </t-form>
     </template>
@@ -30,14 +23,14 @@
 import type { FormRules } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
-import type { SystemUserUpdate } from '@/api/system/model/userModel';
+import type { SystemUserCreate, SystemUserUpdate } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
 
-const { id, visible, data, canEditUsername } = defineProps({
+const props = defineProps({
   id: {
-    type: String,
+    type: Number,
     default: null,
   },
   visible: {
@@ -53,40 +46,43 @@ const { id, visible, data, canEditUsername } = defineProps({
     default: false,
   },
 });
-const emit = defineEmits(['update:visible']);
-console.log('idid:', id);
-const formVisible = ref(false);
-const formData = ref({ ...data });
 
-const onSubmit = () => {
-  userApi
-    .saveUserInfo(formData.value, id)
-    .then(() => {
-      MessagePlugin.success(`提交成功`);
-      formVisible.value = false;
-    })
-    .finally(() => emit('update:visible'));
+const emit = defineEmits(['update:visible']);
+
+const formVisible = ref(false);
+const formData = ref<SystemUserUpdate>({ ...props.data });
+const submitLoading = ref(false);
+
+const rules = computed<FormRules<SystemUserUpdate>>(() => ({
+  username: [{ required: true, message: '请输入用户名', type: 'error' }],
+  nickname: [{ required: true, message: '请输入用户昵称', type: 'error' }],
+  rawPassword: props.id
+    ? []
+    : [
+        { required: true, message: '请输入密码', type: 'error' },
+        { min: 6, message: '密码长度不能少于6位', type: 'error' },
+      ],
+}));
+
+const onSubmit = async () => {
+  submitLoading.value = true;
+  try {
+    if (props.id) {
+      await userApi.update(props.id, formData.value);
+    } else {
+      await userApi.create(formData.value as SystemUserCreate);
+    }
+    MessagePlugin.success('提交成功');
+    formVisible.value = false;
+  } finally {
+    submitLoading.value = false;
+  }
 };
 
 const onClickCloseBtn = () => {
   formVisible.value = false;
-  formData.value = {
-    ...{
-      username: '',
-      rawPassword: '',
-      nickname: '',
-    },
-  };
 };
-const initForm = () => {
-  formData.value = {
-    ...{
-      username: '',
-      rawPassword: '',
-      nickname: '',
-    },
-  };
-};
+
 watch(
   () => formVisible.value,
   (val) => {
@@ -95,26 +91,12 @@ watch(
 );
 
 watch(
-  () => visible,
+  () => props.visible,
   (val) => {
     formVisible.value = val;
-    initForm();
+    if (val) {
+      formData.value = { ...props.data };
+    }
   },
 );
-
-watch(
-  () => data,
-  (val) => {
-    formData.value = val;
-  },
-);
-
-const rules: FormRules<SystemUserUpdate> = {
-  username: [{ required: true, message: '请输入用户名', type: 'error' }],
-  nickname: [{ required: true, message: '请输入用户昵称', type: 'error' }],
-  rawPassword: [
-    { required: !!id, message: '请输入密码', type: 'error' },
-    { min: 6, required: !!id, message: '密码长度要大于6', type: 'error' },
-  ],
-};
 </script>

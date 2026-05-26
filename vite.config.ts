@@ -47,7 +47,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       host: '0.0.0.0',
       allowedHosts: true,
       proxy: {
-        [VITE_API_URL_PREFIX]: 'http://127.0.0.1:3000/',
+        '/system-service': 'http://127.0.0.1:10086',
       },
     },
   };

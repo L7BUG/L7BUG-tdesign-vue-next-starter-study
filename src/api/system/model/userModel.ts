@@ -1,22 +1,21 @@
 export interface CurrentUserInfo {
-  id: string;
+  id: number;
   username: string;
   nickname: string;
   authorities: string[];
 }
 
 export interface SystemUserInfo {
-  id: string;
+  id: number;
   username: string;
   nickname: string;
   status: number;
-  createTime: number;
+  createTime: string;
 }
+
 export interface PageQuery {
-  current: number;
-  size: number;
-  column: string;
-  asc: boolean;
+  pageNum: number;
+  pageSize: number;
 }
 
 export interface PageData<T> {
@@ -26,6 +25,13 @@ export interface PageData<T> {
 
 export interface SystemUserQuery extends PageQuery {
   username?: string;
+}
+
+export interface SystemUserCreate {
+  username: string;
+  nickname: string;
+  rawPassword: string;
+  status: number;
 }
 
 export interface SystemUserUpdate {

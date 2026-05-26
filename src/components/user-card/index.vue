@@ -1,13 +1,12 @@
 <template>
   <t-card theme="poster2" :bordered="false">
     <template #avatar>
-      <t-space>
-        <t-avatar shape="round" size="medium">{{ userInfo.nickname.substring(0, 1).toUpperCase() }}</t-avatar>
-      </t-space>
+      <t-avatar shape="round" size="medium">{{ userInfo.nickname.substring(0, 1).toUpperCase() }}</t-avatar>
     </template>
     <template #status>
       <t-tag :theme="isEnable ? 'success' : 'default'" @click="setStatus">
-        {{ isEnable ? t('components.isSetup.on') : t('components.isSetup.off') }}
+        <t-loading v-if="statusLoading" size="small" />
+        <template v-else>{{ isEnable ? t('components.isSetup.on') : t('components.isSetup.off') }}</template>
       </t-tag>
     </template>
     <template #content>
@@ -17,9 +16,6 @@
       </p>
     </template>
     <template #footer>
-      <!--      <t-avatar-group cascading="left-up" :max="2"> -->
-      <!--        <t-avatar>{{ userInfo.createTime }}</t-avatar> -->
-      <!--      </t-avatar-group> -->
       <t-tag theme="success">
         <template #icon>
           <t-icon name="usergroup-add" />
@@ -29,7 +25,7 @@
     </template>
     <template #actions>
       <t-dropdown
-        :disabled="userInfo.id === '-1' ? true : !isEnable"
+        :disabled="dropdownDisabled"
         trigger="click"
         :options="[
           {
@@ -44,7 +40,7 @@
           },
         ]"
       >
-        <t-button theme="default" :disabled="userInfo.id === '-1' ? true : !isEnable" shape="square" variant="text">
+        <t-button theme="default" :disabled="dropdownDisabled" shape="square" variant="text">
           <more-icon />
         </t-button>
       </t-dropdown>
@@ -55,7 +51,7 @@
 import { MoreIcon } from 'tdesign-icons-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import type { SystemUserInfo } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
@@ -64,21 +60,39 @@ import { t } from '@/locales';
 const props = defineProps({
   info: {
     type: Object as PropType<SystemUserInfo>,
-    default: undefined,
+    required: true,
   },
 });
+
 const emit = defineEmits(['item-update', 'item-can-edit']);
-const setStatus = () => {
-  console.log('请求', isEnable.value);
-  userApi.updateStatus(userInfo.value.id, !isEnable.value).finally(() => {
-    MessagePlugin.success('修改成功');
-    emit('item-update', (userInfo.value.status + 1) % 2);
-  });
-};
+
 const userInfo = ref(props.info);
-const isEnable = computed<boolean>(() => userInfo.value.status === 1);
+
+watch(
+  () => props.info,
+  (val) => {
+    userInfo.value = val;
+  },
+);
+
+const isEnable = computed(() => userInfo.value.status === 1);
+const dropdownDisabled = computed(() => userInfo.value.id === -1 || !isEnable.value);
+
+const statusLoading = ref(false);
+const setStatus = async () => {
+  const newStatus = isEnable.value ? 0 : 1;
+  statusLoading.value = true;
+  try {
+    await userApi.update(userInfo.value.id, { status: newStatus });
+    userInfo.value.status = newStatus;
+    MessagePlugin.success('修改成功');
+  } finally {
+    statusLoading.value = false;
+  }
+};
+
 const deleteById = () => {
-  const deleteConfirm = DialogPlugin.confirm({
+  const dialog = DialogPlugin.confirm({
     header: '确认删除吗?',
     body: '请确认是否删除，删除后，数据将不存在',
     confirmBtn: {
@@ -87,12 +101,10 @@ const deleteById = () => {
       loading: false,
     },
     theme: 'warning',
-    onConfirm: () => {
-      console.log('confirm');
-      userApi.deleteById(userInfo.value.id).finally(() => {
-        deleteConfirm.hide();
-        emit('item-update');
-      });
+    onConfirm: async () => {
+      await userApi.deleteById(userInfo.value.id);
+      dialog.hide();
+      emit('item-update');
     },
   });
 };
@@ -101,7 +113,6 @@ const deleteById = () => {
 .list-card-item {
   display: flex;
   flex-direction: column;
-  cursor: pointer;
 
   &_detail {
     min-height: 140px;

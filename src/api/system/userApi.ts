@@ -1,6 +1,6 @@
 import type {
-  CurrentUserInfo,
   PageData,
+  SystemUserCreate,
   SystemUserInfo,
   SystemUserQuery,
   SystemUserUpdate,
@@ -8,47 +8,37 @@ import type {
 import { request } from '@/utils/request';
 
 const api = {
-  base: '/system/user',
-  currentUserInfo: '/system/user/current-user-info',
+  base: '/system-service/user',
 };
 
 class UserApi {
-  public async currentUserInfo() {
-    return request.get<CurrentUserInfo>({
-      url: api.currentUserInfo,
-    });
-  }
-
-  public async page(query: SystemUserQuery) {
+  async page(query: SystemUserQuery): Promise<PageData<SystemUserInfo>> {
     return request.get<PageData<SystemUserInfo>>({
       url: api.base,
       params: query,
     });
   }
 
-  public async updateStatus(id: string, status: boolean): Promise<void> {
-    return this.saveUserInfo({ status: status ? 1 : 0 }, id);
+  async create(info: SystemUserCreate): Promise<void> {
+    return request.post<void>({
+      url: api.base,
+      params: info,
+    });
   }
 
-  public async saveUserInfo(info: SystemUserUpdate, id?: string): Promise<void> {
-    if (id) {
-      return request.put<void>({
-        url: `${api.base}/${id}`,
-        params: info,
-      });
-    } else {
-      return request.post<void>({
-        url: `${api.base}`,
-        params: info,
-      });
-    }
+  async update(id: number, info: SystemUserUpdate): Promise<void> {
+    return request.put<void>({
+      url: `${api.base}/${id}`,
+      params: info,
+    });
   }
 
-  public async deleteById(id: string): Promise<void> {
+  async deleteById(id: number): Promise<void> {
     return request.delete<void>({
       url: `${api.base}/${id}`,
     });
   }
 }
+
 const userApi = new UserApi();
 export { userApi };

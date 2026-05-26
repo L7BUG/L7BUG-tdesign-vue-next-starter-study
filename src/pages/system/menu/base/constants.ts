@@ -30,7 +30,7 @@ export const INITIAL_DATA = {
 };
 
 export const INITIAL_MENU_DATA: MenuNodeResponse = {
-  fatherId: '-1',
+  fatherId: -1,
   fullId: ' ',
   path: '',
   name: '',
@@ -45,9 +45,6 @@ export const INITIAL_MENU_DATA: MenuNodeResponse = {
     },
     icon: 'add',
   },
-  id: '',
-  label: '',
-  value: '',
 };
 
 export const TYPE_OPTIONS = [

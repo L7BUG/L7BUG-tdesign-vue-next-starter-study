@@ -1,12 +1,5 @@
-import type { RouteItem } from '@/api/model/permissionModel';
-import { request } from '@/utils/request';
-
-const Api = {
-  MenuList: '/system/menu-list',
-};
+import { authApi } from '@/api/system/auth';
 
 export function getMenuList() {
-  return request.get<Array<RouteItem>>({
-    url: Api.MenuList,
-  });
+  return authApi.getMenuList();
 }

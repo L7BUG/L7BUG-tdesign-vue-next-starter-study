@@ -129,7 +129,7 @@ watch(
 );
 const onSubmit = (ctx: SubmitContext) => {
   if (ctx.validateResult === true) {
-    if (menuFormData.value.id) {
+    if (menuFormData.value.id != null) {
       menuApi.updateMenu(menuFormData.value.id, menuFormData.value).then((response) => {
         if (response) {
           MessagePlugin.success('新建成功');
