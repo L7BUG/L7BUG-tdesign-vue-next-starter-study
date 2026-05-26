@@ -58,6 +58,24 @@
         :loading="permissionLoading"
         :keys="{ label: 'name', value: 'id', children: 'children' }"
       />
+
+      <div v-if="permissionDiff.added.length || permissionDiff.removed.length" class="permission-diff">
+        <div v-if="permissionDiff.added.length" class="diff-section diff-added">
+          <div class="diff-label">将新增的权限</div>
+          <div v-for="name in permissionDiff.added" :key="name" class="diff-item">
+            <add-circle-icon size="14px" />
+            <span>{{ name }}</span>
+          </div>
+        </div>
+        <div v-if="permissionDiff.removed.length" class="diff-section diff-removed">
+          <div class="diff-label">将移除的权限</div>
+          <div v-for="name in permissionDiff.removed" :key="name" class="diff-item">
+            <remove-circle-icon size="14px" />
+            <span>{{ name }}</span>
+          </div>
+        </div>
+      </div>
+
       <t-button theme="primary" :loading="permissionSaving" style="margin-top: 24px" @click="savePermissions">
         保存权限
       </t-button>
@@ -65,12 +83,12 @@
   </div>
 </template>
 <script setup lang="ts">
+import { AddCircleIcon, RemoveCircleIcon } from 'tdesign-icons-vue-next';
 import type { SubmitContext } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
 import type { PropType } from 'vue';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
-import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
 import type { RoleInfo } from '@/api/system/model/roleModel';
 import { roleApi } from '@/api/system/roleApi';
@@ -156,6 +174,31 @@ const initialCheckedKeys = ref<(number | string)[]>([]);
 const permissionLoading = ref(false);
 const permissionSaving = ref(false);
 
+const flattenMenuNames = (nodes: MenuNodeResponse[]): Map<number | string, string> => {
+  const map = new Map<number | string, string>();
+  const walk = (list: MenuNodeResponse[]) => {
+    for (const node of list) {
+      map.set(node.id ?? '', node.name ?? '');
+      if (node.children) walk(node.children);
+    }
+  };
+  walk(nodes);
+  return map;
+};
+
+const menuNameMap = computed(() => flattenMenuNames(menuTree.value));
+
+const permissionDiff = computed(() => {
+  const nameMap = menuNameMap.value;
+  const added = checkedKeys.value
+    .filter((k) => !initialCheckedKeys.value.includes(k))
+    .map((k) => nameMap.get(k) || String(k));
+  const removed = initialCheckedKeys.value
+    .filter((k) => !checkedKeys.value.includes(k))
+    .map((k) => nameMap.get(k) || String(k));
+  return { added, removed };
+});
+
 watch(
   () => formData.value.id,
   async (id) => {
@@ -177,10 +220,7 @@ watch(
 );
 
 const loadMenuTree = async (): Promise<MenuNodeResponse> => {
-  if (formData.value.fatherId === -1 || formData.value.fatherId === '-1') {
-    return menuApi.getRoot();
-  }
-  return roleApi.getMenuTreeByRoleId(formData.value.id);
+  return roleApi.getMenuTreeByRoleId(formData.value.fatherId);
 };
 
 const savePermissions = async () => {
@@ -212,6 +252,54 @@ const savePermissions = async () => {
 
 .permission-card {
   margin-top: 12px;
+}
+
+.permission-diff {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--td-bg-color-container);
+  border-radius: var(--td-radius-default);
+  border: 1px solid var(--td-component-stroke);
+}
+
+.diff-section {
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.diff-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.diff-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 13px;
+}
+
+.diff-added {
+  .diff-label {
+    color: var(--td-success-color);
+  }
+  .diff-item {
+    color: var(--td-success-color);
+  }
+}
+
+.diff-removed {
+  .diff-label {
+    color: var(--td-error-color);
+  }
+  .diff-item {
+    color: var(--td-error-color);
+  }
 }
 
 .form-section-title {
