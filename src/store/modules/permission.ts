@@ -8,6 +8,25 @@ import { store } from '@/store';
 import type { Permission } from '@/types/router';
 import { transformObjectToRoute } from '@/utils/route';
 
+function stripButtonNodes(routes: RouteItem[]) {
+  function walk(nodes: RouteItem[]) {
+    if (!nodes) return;
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const node = nodes[i];
+      if (node.type?.toUpperCase() === 'BUTTON') {
+        nodes.splice(i, 1);
+      } else if (node.children) {
+        walk(node.children);
+        if (node.children.length === 0) {
+          delete node.children;
+        }
+      }
+    }
+  }
+
+  walk(routes);
+}
+
 export const usePermissionStore = defineStore('permission', {
   state: () =>
     <Permission>{
@@ -31,6 +50,7 @@ export const usePermissionStore = defineStore('permission', {
       try {
         // 发起菜单权限请求 获取菜单列表
         const asyncRoutes: Array<RouteItem> = await getMenuList();
+        stripButtonNodes(asyncRoutes);
         this.asyncRoutes = transformObjectToRoute(asyncRoutes);
         await this.initRoutes();
         return this.asyncRoutes;

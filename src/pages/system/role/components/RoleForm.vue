@@ -55,6 +55,7 @@
         hover
         expand-on-click-node
         checkable
+        check-strictly
         :loading="permissionLoading"
         :keys="{ label: 'name', value: 'id', children: 'children' }"
       />
@@ -76,7 +77,7 @@
         </div>
       </div>
 
-      <t-button theme="primary" :loading="permissionSaving" style="margin-top: 24px" @click="savePermissions">
+      <t-button v-if="hasPermission('system:role:update')" theme="primary" :loading="permissionSaving" style="margin-top: 24px" @click="savePermissions">
         保存权限
       </t-button>
     </t-card>
@@ -92,10 +93,13 @@ import { computed, ref, watch } from 'vue';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
 import type { RoleInfo } from '@/api/system/model/roleModel';
 import { roleApi } from '@/api/system/roleApi';
+import { usePermission } from '@/composables/usePermission';
 
 defineOptions({
   name: 'RoleForm',
 });
+
+const { hasButtonPermission: hasPermission } = usePermission();
 
 const props = defineProps({
   data: {

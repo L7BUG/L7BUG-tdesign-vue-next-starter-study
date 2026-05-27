@@ -18,4 +18,5 @@ export interface RouteItem {
   redirect?: string;
   meta: RouteMeta;
   children?: Array<RouteItem>;
+  type?: string;
 }

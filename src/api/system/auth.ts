@@ -7,7 +7,7 @@ const api = {
   login: '/system-service/auth/login',
   logout: '/system-service/auth/logout',
   currentUserInfo: '/system-service/user/current-user-info',
-  menuList: '/system-service/menu-list',
+  menuList: '/system-service/user/current-user-menu',
 };
 
 class AuthApi {

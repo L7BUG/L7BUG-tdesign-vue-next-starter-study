@@ -38,6 +38,19 @@ class UserApi {
       url: `${api.base}/${id}`,
     });
   }
+
+  async getRoleIdsByUserId(id: number | string): Promise<(number | string)[]> {
+    return request.get<(number | string)[]>({
+      url: `${api.base}/${id}/roles`,
+    });
+  }
+
+  async setRolesForUser(id: number | string, roleIds: (number | string)[]): Promise<void> {
+    return request.put<void>({
+      url: `${api.base}/${id}/roles`,
+      params: { roleIds },
+    });
+  }
 }
 
 const userApi = new UserApi();

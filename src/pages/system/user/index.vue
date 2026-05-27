@@ -3,7 +3,7 @@
     <t-card class="list-card-container" :bordered="false">
       <t-row justify="space-between">
         <div class="left-operation-container">
-          <t-button @click="openCreate">
+          <t-button v-if="hasPermission('system:user:create')" @click="openCreate">
             <template #icon><user-add-icon /></template>
             新增用户
           </t-button>
@@ -31,14 +31,15 @@
         @select-change="onSelectChange"
       >
         <template #status="{ row }">
-          <t-tag :theme="row.status === 1 ? 'success' : 'default'" @click="toggleStatus(row)">
+          <t-tag :theme="row.status === 1 ? 'success' : 'default'" @click="hasPermission('system:user:update') && toggleStatus(row)">
             {{ row.status === 1 ? '启用' : '禁用' }}
           </t-tag>
         </template>
         <template #op="{ row }">
           <t-space>
-            <t-link theme="primary" @click="openEdit(row)">编辑</t-link>
-            <t-link theme="danger" @click="handleClickDelete(row)">删除</t-link>
+            <t-link v-if="hasPermission('system:user:update')" theme="primary" @click="openRoleAssign(row)">角色</t-link>
+            <t-link v-if="hasPermission('system:user:update')" theme="primary" @click="openEdit(row)">编辑</t-link>
+            <t-link v-if="hasPermission('system:user:delete')" theme="danger" @click="handleClickDelete(row)">删除</t-link>
           </t-space>
         </template>
       </t-table>
@@ -53,6 +54,8 @@
     />
 
     <t-dialog v-model:visible="confirmVisible" header="确认删除" :body="confirmBody" @confirm="onConfirmDelete" />
+
+    <role-assign-dialog :user-id="roleAssignUserId" v-model:visible="roleAssignVisible" />
   </div>
 </template>
 <script setup lang="ts">
@@ -64,12 +67,16 @@ import { computed, onMounted, ref, watch } from 'vue';
 
 import type { SystemUserInfo, SystemUserUpdate } from '@/api/system/model/userModel';
 import { userApi } from '@/api/system/userApi';
+import { usePermission } from '@/composables/usePermission';
 
 import DialogForm from './components/DialogForm.vue';
+import RoleAssignDialog from './components/RoleAssignDialog.vue';
 
 defineOptions({
   name: 'SystemUser',
 });
+
+const { hasButtonPermission: hasPermission } = usePermission();
 
 const COLUMNS: PrimaryTableCol<TableRowData>[] = [
   { colKey: 'row-select', type: 'multiple', width: 50, fixed: 'left' },
@@ -103,6 +110,9 @@ const formDialogVisible = ref(false);
 const editId = ref<number | string | null>(null);
 const canEditUsername = ref(true);
 const createUser = ref<SystemUserUpdate>({ ...INITIAL_USER_DATA });
+
+const roleAssignVisible = ref(false);
+const roleAssignUserId = ref<number | string | null>(null);
 
 const confirmVisible = ref(false);
 const deleteTarget = ref<SystemUserInfo | null>(null);
@@ -169,6 +179,11 @@ const openEdit = (item: SystemUserInfo) => {
     rawPassword: '',
   };
   formDialogVisible.value = true;
+};
+
+const openRoleAssign = (row: SystemUserInfo) => {
+  roleAssignUserId.value = row.id;
+  roleAssignVisible.value = true;
 };
 
 const handleClickDelete = (row: SystemUserInfo) => {

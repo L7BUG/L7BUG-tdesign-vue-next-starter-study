@@ -2,7 +2,7 @@
   <div>
     <t-row :gutter="12">
       <t-col :span="4">
-        <t-card :bordered="false" class="tree-card">
+        <t-card v-if="hasPermission('system:role:query')" :bordered="false" class="tree-card">
           <t-input v-model="filterText" placeholder="搜索角色" clearable>
             <template #suffix-icon>
               <search-icon size="16px" />
@@ -20,26 +20,26 @@
               <span>{{ node.label }}</span>
             </template>
             <template #operations="{ node }">
-              <t-button size="small" shape="square" variant="text" @click="addChild(node)">
+              <t-button v-if="hasPermission('system:role:create')" size="small" shape="square" variant="text" @click="addChild(node)">
                 <template #icon><add-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="editNode(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:role:update')" size="small" shape="square" variant="text" @click="editNode(node)">
                 <template #icon><edit-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="handleDelete(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:role:delete')" size="small" shape="square" variant="text" @click="handleDelete(node)">
                 <template #icon><delete-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveUp(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:role:update')" size="small" shape="square" variant="text" @click="moveUp(node)">
                 <template #icon><align-top-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveDown(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:role:update')" size="small" shape="square" variant="text" @click="moveDown(node)">
                 <template #icon><align-bottom-icon /></template>
               </t-button>
             </template>
           </t-tree>
         </t-card>
       </t-col>
-      <t-col :span="8">
+      <t-col v-if="hasPermission('system:role:query')" :span="8">
         <role-form :data="selectedRole" :tree-data="roleTree" @submit="refreshTree" />
       </t-col>
     </t-row>
@@ -55,12 +55,15 @@ import { computed, ref } from 'vue';
 
 import type { RoleInfo } from '@/api/system/model/roleModel';
 import { roleApi } from '@/api/system/roleApi';
+import { usePermission } from '@/composables/usePermission';
 
 import RoleForm from './components/RoleForm.vue';
 
 defineOptions({
   name: 'SystemRole',
 });
+
+const { hasButtonPermission: hasPermission } = usePermission();
 
 const INITIAL_ROLE_DATA: RoleInfo = {
   id: '',

@@ -2,7 +2,7 @@
   <div>
     <t-row :gutter="12">
       <t-col :span="4">
-        <t-card :bordered="false" class="tree-card">
+        <t-card v-if="hasPermission('system:menu:query')" :bordered="false" class="tree-card">
           <t-input v-model="filterText" placeholder="搜索菜单" clearable>
             <template #suffix-icon>
               <search-icon size="16px" />
@@ -13,19 +13,19 @@
               <span>{{ nodeLabel(node) }}</span>
             </template>
             <template #operations="{ node }">
-              <t-button size="small" shape="square" variant="text" @click="addChild(node)">
+              <t-button v-if="hasPermission('system:menu:create')" size="small" shape="square" variant="text" @click="addChild(node)">
                 <template #icon><add-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="editNode(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:menu:update')" size="small" shape="square" variant="text" @click="editNode(node)">
                 <template #icon><edit-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="handleDelete(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:menu:delete')" size="small" shape="square" variant="text" @click="handleDelete(node)">
                 <template #icon><delete-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveUp(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:menu:update')" size="small" shape="square" variant="text" @click="moveUp(node)">
                 <template #icon><align-top-icon /></template>
               </t-button>
-              <t-button v-if="isNotRoot(node)" size="small" shape="square" variant="text" @click="moveDown(node)">
+              <t-button v-if="isNotRoot(node) && hasPermission('system:menu:update')" size="small" shape="square" variant="text" @click="moveDown(node)">
                 <template #icon><align-bottom-icon /></template>
               </t-button>
             </template>
@@ -35,7 +35,7 @@
           </t-tree>
         </t-card>
       </t-col>
-      <t-col :span="8">
+      <t-col v-if="hasPermission('system:menu:query')" :span="8">
         <menu-form :data="selectedMenu" :tree-data="menuTree" @submit="refreshTree" />
       </t-col>
     </t-row>
@@ -51,6 +51,7 @@ import { computed, ref } from 'vue';
 
 import { menuApi } from '@/api/system/menuApi';
 import type { MenuNodeResponse } from '@/api/system/model/menuModel';
+import { usePermission } from '@/composables/usePermission';
 import { useLocale } from '@/locales/useLocale';
 
 import MenuForm from './components/MenuForm.vue';
@@ -58,6 +59,8 @@ import MenuForm from './components/MenuForm.vue';
 defineOptions({
   name: 'SystemMenu',
 });
+
+const { hasButtonPermission: hasPermission } = usePermission();
 
 const INITIAL_MENU_DATA: MenuNodeResponse = {
   fatherId: -1,
